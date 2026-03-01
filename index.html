@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World of Joy - Fruit Collector</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="hud">
+            <div id="fruit-counter">
+                <span id="fruit-icon">🍎</span>
+                <span id="fruit-count">0</span>
+            </div>
+            <div id="instructions">
+                <p>W/↑ - Forward | S/↓ - Backward | A/← D/→ - Turn</p>
+                <p>SHIFT - Run | SPACE - Jump</p>
+            </div>
+        </div>
+        <div id="start-screen">
+            <h1>🌳 World of Joy 🌳</h1>
+            <p>Explore the open world and collect all the fruit!</p>
+            <button id="start-button">Start Game</button>
+        </div>
+        <div id="loading-screen">
+            <div id="loading-bar-container">
+                <div id="loading-bar"></div>
+            </div>
+            <p id="loading-text">Loading...</p>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
