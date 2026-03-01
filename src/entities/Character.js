@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 
-const WALK_SPEED = 4;
-const RUN_SPEED = 9;
+const WALK_SPEED = 6;
+const RUN_SPEED = 14;
 const GRAVITY = -25;
 const JUMP_FORCE = 10;
-const GROUND_Y = 0;
 
 const STATE = {
     IDLE: 'idle',
@@ -21,6 +20,8 @@ export class Character {
         this.state = STATE.IDLE;
         this.animationTime = 0;
         this.rotationY = 0;
+        this.speedMultiplier = 1;
+        this.boostTimeRemaining = 0;
 
         this.group = new THREE.Group();
         this.buildModel();
@@ -133,7 +134,7 @@ export class Character {
         rightShoe.castShadow = true;
         this.rightLegPivot.add(rightShoe);
 
-        // Shadow beneath character
+        // Shadow beneath character (added to scene, not group, so it stays on the ground)
         const shadowGeometry = new THREE.CircleGeometry(0.4, 16);
         const shadowMaterial = new THREE.MeshBasicMaterial({
             color: 0x000000,
@@ -142,20 +143,30 @@ export class Character {
         });
         this.shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
         this.shadow.rotation.x = -Math.PI / 2;
-        this.shadow.position.y = 0.01;
-        this.group.add(this.shadow);
+        this.scene.add(this.shadow);
     }
 
     update(delta, input, world) {
         this.updateMovement(delta, input);
         this.updatePhysics(delta, world);
         this.updateAnimation(delta);
+        this.updateShadow(world);
     }
 
     updateMovement(delta, input) {
+        // Update boost timer
+        if (this.boostTimeRemaining > 0) {
+            this.boostTimeRemaining -= delta;
+            if (this.boostTimeRemaining <= 0) {
+                this.boostTimeRemaining = 0;
+                this.speedMultiplier = 1;
+            }
+        }
+
         const isMoving = input.isMoving;
         const isRunning = input.run && isMoving;
-        const speed = isRunning ? RUN_SPEED : WALK_SPEED;
+        const baseSpeed = isRunning ? RUN_SPEED : WALK_SPEED;
+        const speed = baseSpeed * this.speedMultiplier;
 
         const forward = new THREE.Vector3(0, 0, 1);
         forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationY);
@@ -218,6 +229,17 @@ export class Character {
             this.velocity.z = 0;
             this.group.position.y = newPos.y;
         }
+
+        // Clamp to world boundaries
+        const boundary = world.getWorldBounds();
+        this.group.position.x = THREE.MathUtils.clamp(this.group.position.x, -boundary, boundary);
+        this.group.position.z = THREE.MathUtils.clamp(this.group.position.z, -boundary, boundary);
+    }
+
+    updateShadow(world) {
+        const pos = this.group.position;
+        const groundY = world.getHeightAt(pos.x, pos.z);
+        this.shadow.position.set(pos.x, groundY + 0.02, pos.z);
     }
 
     updateAnimation(delta) {
@@ -284,5 +306,18 @@ export class Character {
 
     getCollisionRadius() {
         return 0.5;
+    }
+
+    applySpeedBoost(duration, multiplier) {
+        this.speedMultiplier = multiplier;
+        this.boostTimeRemaining = duration;
+    }
+
+    getBoostTimeRemaining() {
+        return this.boostTimeRemaining;
+    }
+
+    isBoosted() {
+        return this.boostTimeRemaining > 0;
     }
 }

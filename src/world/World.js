@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 
-const WORLD_SIZE = 400;
-const TERRAIN_SEGMENTS = 100;
-const TREE_COUNT = 120;
-const ROCK_COUNT = 60;
-const FLOWER_COUNT = 200;
-const BUSH_COUNT = 80;
+const WORLD_SIZE = 1200;
+const TERRAIN_SEGMENTS = 200;
+const TREE_COUNT = 400;
+const ROCK_COUNT = 180;
+const FLOWER_COUNT = 600;
+const BUSH_COUNT = 250;
 const TREE_COLLISION_RADIUS = 0.8;
+const WORLD_HALF = WORLD_SIZE / 2;
 
 export class World {
     constructor(scene) {
@@ -317,5 +318,9 @@ export class World {
 
     getTreePositions() {
         return this.trees.map((t) => t.position.clone());
+    }
+
+    getWorldBounds() {
+        return WORLD_HALF - 5;
     }
 }

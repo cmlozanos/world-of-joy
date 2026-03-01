@@ -4,6 +4,7 @@ import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { Character } from './entities/Character.js';
 import { World } from './world/World.js';
 import { FruitManager } from './entities/FruitManager.js';
+import { WaterBottleManager } from './entities/WaterBottleManager.js';
 import { HUD } from './ui/HUD.js';
 
 class Game {
@@ -36,13 +37,13 @@ class Game {
     initScene() {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x87ceeb);
-        this.scene.fog = new THREE.FogExp2(0x87ceeb, 0.0025);
+        this.scene.fog = new THREE.FogExp2(0x87ceeb, 0.0012);
 
         this.camera = new THREE.PerspectiveCamera(
             60,
             window.innerWidth / window.innerHeight,
             0.1,
-            1000
+            2000
         );
     }
 
@@ -72,6 +73,7 @@ class Game {
         this.world = new World(this.scene);
         this.character = new Character(this.scene);
         this.fruitManager = new FruitManager(this.scene);
+        this.waterBottleManager = new WaterBottleManager(this.scene);
         this.cameraController = new ThirdPersonCamera(this.camera, this.character);
         this.hud = new HUD();
     }
@@ -90,6 +92,7 @@ class Game {
 
         this.world.generate(() => {
             this.fruitManager.spawnFruits(this.world.getTreePositions());
+            this.waterBottleManager.spawn(this.world);
             this.hud.setTotalFruits(this.fruitManager.getTotalFruits());
 
             document.getElementById('loading-screen').style.display = 'none';
@@ -113,7 +116,15 @@ class Game {
             this.score++;
             this.hud.updateScore(this.score, this.fruitManager.getRemainingFruits());
             this.hud.showFruitPopup(fruit, this.camera, this.renderer);
+            this.hud.showFruitMessage();
         });
+
+        this.waterBottleManager.update(delta, this.character, (duration, multiplier) => {
+            this.character.applySpeedBoost(duration, multiplier);
+            this.hud.showWaterMessage();
+        });
+
+        this.hud.updateBoost(this.character.getBoostTimeRemaining());
 
         this.renderer.render(this.scene, this.camera);
     }
