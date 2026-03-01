@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
-const WORLD_SIZE = 1200;
-const TERRAIN_SEGMENTS = 200;
-const TREE_COUNT = 400;
-const ROCK_COUNT = 180;
-const FLOWER_COUNT = 600;
-const BUSH_COUNT = 250;
+const WORLD_SIZE = 600;
+const TERRAIN_SEGMENTS = 150;
+const TREE_COUNT = 500;
+const ROCK_COUNT = 120;
+const FLOWER_COUNT = 400;
+const BUSH_COUNT = 180;
 const TREE_COLLISION_RADIUS = 0.8;
 const WORLD_HALF = WORLD_SIZE / 2;
 

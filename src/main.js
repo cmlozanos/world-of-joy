@@ -1,11 +1,18 @@
 import * as THREE from 'three';
 import { InputManager } from './engine/InputManager.js';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
+import { SoundManager } from './engine/SoundManager.js';
+import { ParticleSystem } from './engine/ParticleSystem.js';
 import { Character } from './entities/Character.js';
 import { World } from './world/World.js';
 import { FruitManager } from './entities/FruitManager.js';
 import { WaterBottleManager } from './entities/WaterBottleManager.js';
+import { Wildlife } from './entities/Wildlife.js';
+import { TrampolineManager } from './entities/TrampolineManager.js';
 import { HUD } from './ui/HUD.js';
+import { Minimap } from './ui/Minimap.js';
+import { Compass } from './ui/Compass.js';
+import { MusicManager } from './engine/MusicManager.js';
 
 class Game {
     constructor() {
@@ -70,12 +77,21 @@ class Game {
 
     initModules() {
         this.input = new InputManager();
+        this.sound = new SoundManager();
         this.world = new World(this.scene);
         this.character = new Character(this.scene);
         this.fruitManager = new FruitManager(this.scene);
         this.waterBottleManager = new WaterBottleManager(this.scene);
+        this.wildlife = new Wildlife(this.scene);
+        this.trampolineManager = new TrampolineManager(this.scene);
+        this.particles = new ParticleSystem(this.scene);
         this.cameraController = new ThirdPersonCamera(this.camera, this.character);
         this.hud = new HUD();
+        this.minimap = new Minimap();
+        this.compass = new Compass();
+        this.music = new MusicManager();
+        this.footstepTimer = 0;
+        this.lastJumpCount = 0;
     }
 
     bindEvents() {
@@ -90,14 +106,21 @@ class Game {
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
 
+        this.sound.init();
+
         this.world.generate(() => {
             this.fruitManager.spawnFruits(this.world.getTreePositions());
             this.waterBottleManager.spawn(this.world);
+            this.wildlife.spawn(this.world);
+            this.trampolineManager.spawn(this.world);
             this.hud.setTotalFruits(this.fruitManager.getTotalFruits());
 
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
 
+            this.sound.playAmbient();
+            this.music.init(this.sound.getAudioContext());
+            this.music.start();
             this.isRunning = true;
             this.clock.start();
             this.loop();
@@ -112,19 +135,62 @@ class Game {
 
         this.character.update(delta, this.input, this.world);
         this.cameraController.update(delta, this.input);
+
+        // Footstep sounds
+        if (this.character.isMoving()) {
+            this.footstepTimer -= delta;
+            if (this.footstepTimer <= 0) {
+                const isRunning = this.character.isBoosted() || this.input.run;
+                this.sound.playFootstep(isRunning);
+                this.footstepTimer = isRunning ? 0.25 : 0.4;
+            }
+        } else {
+            this.footstepTimer = 0;
+        }
+
+        // Jump sound (supports double jump)
+        if (this.input.jump && this.character.jumpCount > this.lastJumpCount) {
+            this.sound.playJump();
+        }
+        this.lastJumpCount = this.character.jumpCount;
+        if (this.character.isGrounded) this.lastJumpCount = 0;
+
+        // Running dust particles
+        if (this.input.run && this.character.isMoving()) {
+            const pos = this.character.getPosition();
+            const dir = this.character.getForwardDirection();
+            this.particles.emitRunDust(pos, dir);
+        }
+
         this.fruitManager.update(delta, this.character, (fruit) => {
             this.score++;
             this.hud.updateScore(this.score, this.fruitManager.getRemainingFruits());
             this.hud.showFruitPopup(fruit, this.camera, this.renderer);
             this.hud.showFruitMessage();
+            this.sound.playFruitCollect();
+            this.particles.emitFruitCollect(fruit.group.position);
         });
 
         this.waterBottleManager.update(delta, this.character, (duration, multiplier) => {
             this.character.applySpeedBoost(duration, multiplier);
             this.hud.showWaterMessage();
+            this.sound.playWaterCollect();
+            this.particles.emitWaterCollect(this.character.getPosition());
         });
 
+        // Update trampolines (detect bounce)
+        const prevVelY = this.character.velocity.y;
+        this.trampolineManager.update(delta, this.character);
+        if (this.character.velocity.y > prevVelY + 5) {
+            this.sound.playBounce();
+            this.particles.emitFruitCollect(this.character.getPosition());
+        }
+
+        this.wildlife.update(delta, this.world);
+        this.particles.update(delta);
         this.hud.updateBoost(this.character.getBoostTimeRemaining());
+        this.minimap.update(this.character, this.fruitManager, this.waterBottleManager, this.world.getWorldBounds());
+        this.compass.update(this.character, this.fruitManager);
 
         this.renderer.render(this.scene, this.camera);
     }

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World of Joy - Fruit Collector</title>
+    <title>World of Joy - Recolector de Frutas</title>
     <link rel="stylesheet" href="src/styles/main.css">
 </head>
 <body>
@@ -22,22 +22,29 @@
                     <div id="boost-bar"></div>
                 </div>
             </div>
+            <div id="minimap-container">
+                <canvas id="minimap-canvas"></canvas>
+            </div>
+            <div id="compass-container">
+                <canvas id="compass-canvas"></canvas>
+                <div id="compass-label">🍎 Fruta más cercana</div>
+            </div>
             <div id="instructions">
-                <p>W/↑ - Forward | S/↓ - Backward | A/← D/→ - Turn</p>
-                <p>SHIFT - Run | SPACE - Jump</p>
+                <p>W/↑ - Avanzar | S/↓ - Retroceder | A/← D/→ - Girar</p>
+                <p>SHIFT - Correr | ESPACIO - Saltar</p>
             </div>
             <div id="message-container"></div>
         </div>
         <div id="start-screen">
             <h1>🌳 World of Joy 🌳</h1>
-            <p>Explore the open world and collect all the fruit!</p>
-            <button id="start-button">Start Game</button>
+            <p>¡Explora el mundo abierto y recoge toda la fruta!</p>
+            <button id="start-button">¡Jugar!</button>
         </div>
         <div id="loading-screen">
             <div id="loading-bar-container">
                 <div id="loading-bar"></div>
             </div>
-            <p id="loading-text">Loading...</p>
+            <p id="loading-text">Cargando...</p>
         </div>
     </div>
 

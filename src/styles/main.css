@@ -103,6 +103,45 @@ body {
     transition: width 0.15s linear;
 }
 
+#minimap-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+#minimap-canvas {
+    width: 160px;
+    height: 160px;
+    display: block;
+}
+
+#compass-container {
+    position: absolute;
+    top: 190px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+#compass-canvas {
+    width: 70px;
+    height: 70px;
+    display: block;
+}
+
+#compass-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 10px;
+    text-align: center;
+    white-space: nowrap;
+}
+
 #instructions {
     position: absolute;
     bottom: 20px;

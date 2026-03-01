@@ -14,30 +14,30 @@ export class HUD {
         this.isShowingMessage = false;
 
         this.fruitMessages = [
-            'Awesome! Fruit is super healthy! 🍎',
-            'Great job! Vitamins make you strong! 💪',
-            'Yummy! Nature gives us the best snacks! 🌿',
-            'Fantastic! Eating fruit makes you smarter! 🧠',
-            'Wonderful! You are a fruit champion! 🏆',
-            'Amazing! Fruit gives you energy to play! ⚡',
-            'Brilliant! Healthy food, happy body! 😊',
-            'Super! Every fruit counts! Keep going! 🌟',
-            'Wow! You are taking care of yourself! ❤️',
-            'Excellent! Fruit is a gift from trees! 🌳',
-            'Cool! Sharing fruit makes everyone happy! 🤗',
-            'Nice catch! Fresh fruit is the best! 🍊',
-            'Way to go! Your body says thank you! 🙌',
-            'Perfect! Fruit is nature\'s candy! 🍬',
-            'Hooray! Keep exploring and collecting! 🗺️',
+            '¡Genial! ¡La fruta es súper saludable! 🍎',
+            '¡Buen trabajo! ¡Las vitaminas te hacen fuerte! 💪',
+            '¡Qué rico! ¡La naturaleza nos da los mejores snacks! 🌿',
+            '¡Fantástico! ¡Comer fruta te hace más listo! 🧠',
+            '¡Maravilloso! ¡Eres un campeón de la fruta! 🏆',
+            '¡Increíble! ¡La fruta te da energía para jugar! ⚡',
+            '¡Brillante! ¡Comida sana, cuerpo feliz! 😊',
+            '¡Súper! ¡Cada fruta cuenta! ¡Sigue así! 🌟',
+            '¡Wow! ¡Te estás cuidando muy bien! ❤️',
+            '¡Excelente! ¡La fruta es un regalo de los árboles! 🌳',
+            '¡Guay! ¡Compartir fruta hace feliz a todos! 🤗',
+            '¡Buena captura! ¡La fruta fresca es la mejor! 🍊',
+            '¡Así se hace! ¡Tu cuerpo te da las gracias! 🙌',
+            '¡Perfecto! ¡La fruta es el dulce de la naturaleza! 🍬',
+            '¡Hurra! ¡Sigue explorando y recolectando! 🗺️',
         ];
 
         this.waterMessages = [
-            'Water power! Stay hydrated! 💧',
-            'Speed boost! Water is life! 🏃',
-            'Splash! Water makes you faster! 🌊',
-            'Hydration hero! Run like the wind! 💨',
-            'Refreshing! Your body loves water! 💙',
-            'Whoosh! Water gives you superpowers! ⚡',
+            '¡Poder del agua! ¡Mantente hidratado! 💧',
+            '¡Turbo activado! ¡El agua es vida! 🏃',
+            '¡Splash! ¡El agua te hace más rápido! 🌊',
+            '¡Héroe de la hidratación! ¡Corre como el viento! 💨',
+            '¡Refrescante! ¡Tu cuerpo adora el agua! 💙',
+            '¡Whoosh! ¡El agua te da superpoderes! ⚡',
         ];
 
         // Hide instructions after a few seconds

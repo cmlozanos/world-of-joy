@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 
-const WALK_SPEED = 6;
-const RUN_SPEED = 14;
+const WALK_SPEED = 10;
+const RUN_SPEED = 20;
 const GRAVITY = -25;
 const JUMP_FORCE = 10;
+const MAX_JUMPS = 2;
 
 const STATE = {
     IDLE: 'idle',
@@ -17,6 +18,7 @@ export class Character {
         this.scene = scene;
         this.velocity = new THREE.Vector3();
         this.isGrounded = true;
+        this.jumpCount = 0;
         this.state = STATE.IDLE;
         this.animationTime = 0;
         this.rotationY = 0;
@@ -191,9 +193,10 @@ export class Character {
             }
         }
 
-        if (input.jump && this.isGrounded) {
+        if (input.jump && this.jumpCount < MAX_JUMPS) {
             this.velocity.y = JUMP_FORCE;
             this.isGrounded = false;
+            this.jumpCount++;
             this.state = STATE.JUMPING;
         }
     }
@@ -212,6 +215,7 @@ export class Character {
             newPos.y = terrainY;
             this.velocity.y = 0;
             this.isGrounded = true;
+            this.jumpCount = 0;
             if (this.state === STATE.JUMPING) {
                 this.state = this.velocity.x !== 0 || this.velocity.z !== 0
                     ? STATE.WALKING
@@ -319,5 +323,15 @@ export class Character {
 
     isBoosted() {
         return this.boostTimeRemaining > 0;
+    }
+
+    isMoving() {
+        return this.state === STATE.WALKING || this.state === STATE.RUNNING;
+    }
+
+    getForwardDirection() {
+        const forward = new THREE.Vector3(0, 0, 1);
+        forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationY);
+        return forward;
     }
 }
