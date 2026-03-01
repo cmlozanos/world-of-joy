@@ -90,6 +90,7 @@ class Game {
 
         this.world.generate(() => {
             this.fruitManager.spawnFruits(this.world.getTreePositions());
+            this.hud.setTotalFruits(this.fruitManager.getTotalFruits());
 
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
@@ -110,7 +111,7 @@ class Game {
         this.cameraController.update(delta, this.input);
         this.fruitManager.update(delta, this.character, (fruit) => {
             this.score++;
-            this.hud.updateScore(this.score);
+            this.hud.updateScore(this.score, this.fruitManager.getRemainingFruits());
             this.hud.showFruitPopup(fruit, this.camera, this.renderer);
         });
 

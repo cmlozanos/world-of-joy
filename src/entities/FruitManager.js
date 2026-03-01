@@ -20,7 +20,16 @@ export class FruitManager {
     constructor(scene) {
         this.scene = scene;
         this.fruits = [];
+        this.totalFruits = 0;
         this.time = 0;
+    }
+
+    getTotalFruits() {
+        return this.totalFruits;
+    }
+
+    getRemainingFruits() {
+        return this.fruits.filter((f) => !f.collected).length;
     }
 
     spawnFruits(treePositions) {
@@ -87,6 +96,8 @@ export class FruitManager {
             collected: false,
             type,
         });
+
+        this.totalFruits++;
     }
 
     update(delta, character, onCollect) {

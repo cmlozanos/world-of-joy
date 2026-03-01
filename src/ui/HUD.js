@@ -2,7 +2,9 @@ import * as THREE from 'three';
 
 export class HUD {
     constructor() {
-        this.fruitCountEl = document.getElementById('fruit-count');
+        this.collectedEl = document.getElementById('fruit-collected');
+        this.remainingEl = document.getElementById('fruit-remaining');
+        this.counterEl = document.getElementById('fruit-counter');
         this.instructionsEl = document.getElementById('instructions');
 
         // Hide instructions after a few seconds
@@ -13,13 +15,18 @@ export class HUD {
         }, 8000);
     }
 
-    updateScore(score) {
-        this.fruitCountEl.textContent = score;
+    setTotalFruits(total) {
+        this.remainingEl.textContent = total;
+    }
+
+    updateScore(collected, remaining) {
+        this.collectedEl.textContent = collected;
+        this.remainingEl.textContent = remaining;
 
         // Pulse animation on score change
-        this.fruitCountEl.parentElement.style.transform = 'scale(1.2)';
+        this.counterEl.style.transform = 'scale(1.2)';
         setTimeout(() => {
-            this.fruitCountEl.parentElement.style.transform = 'scale(1)';
+            this.counterEl.style.transform = 'scale(1)';
         }, 150);
     }
 

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
-const CAMERA_OFFSET = new THREE.Vector3(0, 4, -8);
-const LOOK_AT_OFFSET = new THREE.Vector3(0, 1.5, 0);
-const PITCH = 0.3;
+const CAMERA_OFFSET = new THREE.Vector3(0, 2.8, -7);
+const LOOK_AT_OFFSET = new THREE.Vector3(0, 1.2, 2);
+const PITCH = 0.15;
 const SMOOTHING = 8;
 
 export class ThirdPersonCamera {
