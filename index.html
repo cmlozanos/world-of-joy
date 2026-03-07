@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>World of Joy - Recolector de Frutas</title>
-    <link rel="stylesheet" href="src/styles/main.css">
+    <link rel="stylesheet" href="src/styles/main.css?v=20260306b">
 </head>
 <body>
     <div id="game-container">
@@ -22,6 +22,19 @@
                     <div id="boost-bar"></div>
                 </div>
             </div>
+            <div id="round-bar">
+                <div id="round-number">Ronda 1/8</div>
+                <div id="timer-container">
+                    <div id="timer-bar-bg-round">
+                        <div id="timer-bar-round"></div>
+                    </div>
+                    <span id="timer-text">75</span>
+                </div>
+                <div id="mission-info">
+                    <span id="mission-icon">🍎</span>
+                    <span id="mission-progress-text">0/8</span>
+                </div>
+            </div>
             <div id="minimap-container">
                 <canvas id="minimap-canvas"></canvas>
             </div>
@@ -34,6 +47,47 @@
                 <p>SHIFT - Correr | ESPACIO - Saltar</p>
             </div>
             <div id="message-container"></div>
+            <div id="mission-hint-bar"></div>
+
+            <div id="briefing-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <h3 id="briefing-round-num">Ronda 1 / 8</h3>
+                    <h1 id="briefing-theme-name">Pradera Matutina</h1>
+                    <p id="briefing-mission-text">¡Recoge 8 frutas!</p>
+                    <p id="briefing-mission-hint"></p>
+                    <div id="briefing-countdown">3</div>
+                </div>
+            </div>
+
+            <div id="round-complete-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <h1>¡Ronda Completada!</h1>
+                    <div id="stars-display">⭐⭐⭐</div>
+                    <p id="time-bonus-text"></p>
+                    <button id="next-round-btn" class="round-btn">Siguiente Ronda</button>
+                </div>
+            </div>
+
+            <div id="time-up-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <span class="time-up-emoji">⏰</span>
+                    <h1>¡Se acabó el tiempo!</h1>
+                    <p id="time-up-text"></p>
+                    <div class="time-up-buttons">
+                        <button id="retry-btn" class="round-btn">🔄 Reintentar</button>
+                        <button id="finish-btn" class="round-btn">🏠 Finalizar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="victory-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <h1>🎉 ¡Victoria! 🎉</h1>
+                    <div id="victory-stars"></div>
+                    <p id="victory-score-text"></p>
+                    <button id="play-again-btn" class="round-btn">Jugar de Nuevo</button>
+                </div>
+            </div>
         </div>
         <div id="start-screen">
             <h1>🌳 World of Joy 🌳</h1>
@@ -56,6 +110,6 @@
         }
     }
     </script>
-    <script type="module" src="src/main.js"></script>
+    <script type="module" src="src/main.js?v=20260306b"></script>
 </body>
 </html>

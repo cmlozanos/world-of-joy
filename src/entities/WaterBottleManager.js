@@ -103,6 +103,7 @@ export class WaterBottleManager {
         });
         const beacon = new THREE.Mesh(beaconGeometry, beaconMaterial);
         beacon.position.y = 0.5 + BEACON_HEIGHT / 2;
+        beacon.visible = false;
         group.add(beacon);
 
         // Scale up the entire bottle
@@ -114,30 +115,65 @@ export class WaterBottleManager {
 
         this.bottles.push({
             group,
+            beacon,
             baseY,
             phaseOffset: Math.random() * Math.PI * 2,
             collected: false,
         });
     }
 
-    update(delta, character, onCollect) {
+    setBeaconsVisible(visible) {
+        for (const bottle of this.bottles) {
+            if (!bottle.collected) bottle.beacon.visible = visible;
+        }
+    }
+
+    getActivePositions() {
+        return this.bottles
+            .filter((b) => !b.collected)
+            .map((b) => b.group.position);
+    }
+
+    reset() {
+        for (const bottle of this.bottles) {
+            this.scene.remove(bottle.group);
+            bottle.group.traverse((child) => {
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) child.material.dispose();
+            });
+        }
+        this.bottles = [];
+        this.time = 0;
+    }
+
+    animate(delta) {
         this.time += delta;
+        for (const bottle of this.bottles) {
+            if (bottle.collected) continue;
+            bottle.group.position.y =
+                bottle.baseY + Math.sin(this.time * FLOAT_SPEED + bottle.phaseOffset) * FLOAT_AMPLITUDE;
+            bottle.group.rotation.y = this.time * SPIN_SPEED;
+
+            // Pulse beacon
+            if (bottle.beacon.visible) {
+                const pulse = 0.2 + Math.sin(this.time * 2.5 + bottle.phaseOffset) * 0.12;
+                bottle.beacon.material.opacity = pulse;
+            }
+        }
+    }
+
+    update(delta, character, onCollect) {
+        this.animate(delta);
         const characterPos = character.getPosition();
 
         for (let i = this.bottles.length - 1; i >= 0; i--) {
             const bottle = this.bottles[i];
             if (bottle.collected) continue;
 
-            // Animate
-            bottle.group.position.y =
-                bottle.baseY + Math.sin(this.time * FLOAT_SPEED + bottle.phaseOffset) * FLOAT_AMPLITUDE;
-            bottle.group.rotation.y = this.time * SPIN_SPEED;
-
-            // Check collection
+            // Check collection using 2D (XZ) distance
             const dx = characterPos.x - bottle.group.position.x;
-            const dy = characterPos.y - bottle.group.position.y;
             const dz = characterPos.z - bottle.group.position.z;
-            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            const distance = Math.sqrt(dx * dx + dz * dz);
 
             if (distance < COLLECTION_RADIUS) {
                 bottle.collected = true;

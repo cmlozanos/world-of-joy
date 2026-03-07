@@ -5,6 +5,7 @@ const RUN_SPEED = 20;
 const GRAVITY = -25;
 const JUMP_FORCE = 10;
 const MAX_JUMPS = 2;
+const FEET_HEIGHT = 0.26;
 
 const STATE = {
     IDLE: 'idle',
@@ -24,6 +25,7 @@ export class Character {
         this.rotationY = 0;
         this.speedMultiplier = 1;
         this.boostTimeRemaining = 0;
+        this._prevJumpInput = false;
 
         this.group = new THREE.Group();
         this.buildModel();
@@ -193,7 +195,10 @@ export class Character {
             }
         }
 
-        if (input.jump && this.jumpCount < MAX_JUMPS) {
+        const jumpTriggered = input.jump && !this._prevJumpInput;
+        this._prevJumpInput = input.jump;
+
+        if (jumpTriggered && this.jumpCount < MAX_JUMPS) {
             this.velocity.y = JUMP_FORCE;
             this.isGrounded = false;
             this.jumpCount++;
@@ -211,8 +216,8 @@ export class Character {
 
         const terrainY = world.getHeightAt(newPos.x, newPos.z);
 
-        if (newPos.y <= terrainY) {
-            newPos.y = terrainY;
+        if (newPos.y + FEET_HEIGHT <= terrainY) {
+            newPos.y = terrainY - FEET_HEIGHT;
             this.velocity.y = 0;
             this.isGrounded = true;
             this.jumpCount = 0;
@@ -308,10 +313,6 @@ export class Character {
         return this.group.position.clone();
     }
 
-    getCollisionRadius() {
-        return 0.5;
-    }
-
     applySpeedBoost(duration, multiplier) {
         this.speedMultiplier = multiplier;
         this.boostTimeRemaining = duration;
@@ -333,5 +334,19 @@ export class Character {
         const forward = new THREE.Vector3(0, 0, 1);
         forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationY);
         return forward;
+    }
+
+    resetPosition() {
+        this.group.position.set(0, 0, 0);
+        this.velocity.set(0, 0, 0);
+        this.isGrounded = true;
+        this.jumpCount = 0;
+        this.state = STATE.IDLE;
+        this.boostTimeRemaining = 0;
+        this.speedMultiplier = 1;
+        this.animationTime = 0;
+        this.rotationY = 0;
+        this.group.rotation.y = 0;
+        this._prevJumpInput = false;
     }
 }

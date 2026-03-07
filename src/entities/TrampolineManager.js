@@ -5,6 +5,7 @@ const BOUNCE_FORCE = 18;
 const TRAMPOLINE_RADIUS = 1.2;
 const DETECTION_RADIUS = 1.5;
 const BOUNCE_ANIMATION_SPEED = 8;
+const BEACON_HEIGHT = 18;
 
 export class TrampolineManager {
     constructor(scene) {
@@ -116,6 +117,30 @@ export class TrampolineManager {
         }
         group.add(arrowGroup);
 
+        // Vertical light beacon pillar
+        const beaconGeometry = new THREE.CylinderGeometry(0.05, 0.25, BEACON_HEIGHT, 6);
+        const beaconMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff4081,
+            transparent: true,
+            opacity: 0.25,
+        });
+        const beacon = new THREE.Mesh(beaconGeometry, beaconMaterial);
+        beacon.position.y = 0.3 + BEACON_HEIGHT / 2;
+        beacon.visible = false;
+        group.add(beacon);
+
+        // Beacon top glow sphere
+        const beaconTopGeo = new THREE.SphereGeometry(0.2, 8, 8);
+        const beaconTopMat = new THREE.MeshBasicMaterial({
+            color: 0xff4081,
+            transparent: true,
+            opacity: 0.45,
+        });
+        const beaconTop = new THREE.Mesh(beaconTopGeo, beaconTopMat);
+        beaconTop.position.y = 0.3 + BEACON_HEIGHT;
+        beaconTop.visible = false;
+        group.add(beaconTop);
+
         group.position.set(x, y, z);
         this.scene.add(group);
 
@@ -123,6 +148,8 @@ export class TrampolineManager {
             group,
             pad,
             arrowGroup,
+            beacon,
+            beaconTop,
             glow,
             x,
             y,
@@ -132,44 +159,62 @@ export class TrampolineManager {
         });
     }
 
-    update(delta, character) {
-        this.time += delta;
-        const charPos = character.getPosition();
-
+    setBeaconsVisible(visible) {
         for (const t of this.trampolines) {
-            // Animate arrows floating up
+            t.arrowGroup.visible = visible;
+            t.beacon.visible = visible;
+            t.beaconTop.visible = visible;
+        }
+    }
+
+    getPositions() {
+        return this.trampolines.map((t) => new THREE.Vector3(t.x, t.y, t.z));
+    }
+
+    animate(delta) {
+        this.time += delta;
+        for (const t of this.trampolines) {
             for (let i = 0; i < t.arrowGroup.children.length; i++) {
                 const arrow = t.arrowGroup.children[i];
                 const offset = (this.time * 1.5 + i * 0.4) % 1.5;
                 arrow.position.y = 0.5 + offset * 0.6;
                 arrow.material.opacity = 0.6 * (1 - offset / 1.5);
             }
-
-            // Glow pulse
             t.glow.material.opacity = 0.15 + Math.sin(this.time * 3) * 0.1;
 
-            // Bounce animation recovery
+            // Pulse beacon
+            if (t.beacon.visible) {
+                const pulse = 0.18 + Math.sin(this.time * 2.5) * 0.1;
+                t.beacon.material.opacity = pulse;
+                t.beaconTop.material.opacity = 0.35 + Math.sin(this.time * 3) * 0.15;
+                const s = 0.85 + Math.sin(this.time * 3) * 0.25;
+                t.beaconTop.scale.setScalar(s);
+            }
+
             if (t.bounceTimer > 0) {
                 t.bounceTimer -= delta * BOUNCE_ANIMATION_SPEED;
                 const depress = Math.sin(t.bounceTimer * Math.PI) * 0.1;
                 t.pad.position.y = t.padBaseY - Math.max(0, depress);
             }
+        }
+    }
 
-            // Check if character lands on trampoline
+    update(delta, character, onBounce) {
+        this.animate(delta);
+        const charPos = character.getPosition();
+
+        for (const t of this.trampolines) {
             const dx = charPos.x - t.x;
             const dz = charPos.z - t.z;
             const dist = Math.sqrt(dx * dx + dz * dz);
             const heightDiff = charPos.y - t.y;
 
-            if (dist < DETECTION_RADIUS && heightDiff >= -0.1 && heightDiff < 1.0 && character.velocity.y <= 0) {
+            if (dist < DETECTION_RADIUS && heightDiff >= -0.5 && heightDiff < 1.5 && character.velocity.y <= 0) {
                 character.velocity.y = BOUNCE_FORCE;
                 character.isGrounded = false;
                 t.bounceTimer = 1;
+                if (onBounce) onBounce(t);
             }
         }
-    }
-
-    getTrampolinePositions() {
-        return this.trampolines.map((t) => new THREE.Vector3(t.x, t.y, t.z));
     }
 }

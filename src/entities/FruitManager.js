@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 
-const COLLECTION_RADIUS = 2.0;
-const FRUIT_FLOAT_HEIGHT = 2.5;
+const COLLECTION_RADIUS = 3.0;
+const FRUIT_FLOAT_HEIGHT = 1.5;
 const FRUIT_BOUNCE_SPEED = 2;
 const FRUIT_BOUNCE_AMPLITUDE = 0.3;
 const FRUIT_SPIN_SPEED = 1.5;
-const FRUITS_PER_TREE = 3;
-const FRUIT_SCATTER_RADIUS = 3;
+const FRUITS_PER_TREE = 2;
+const FRUIT_SCATTER_RADIUS = 5;
+const FRUIT_SCALE = 2.5;
+const BEACON_HEIGHT = 8;
 
 const FRUIT_TYPES = [
     { name: 'apple', color: 0xff3333, size: 0.2 },
@@ -22,6 +24,11 @@ export class FruitManager {
         this.fruits = [];
         this.totalFruits = 0;
         this.time = 0;
+
+        this.bodyGeometry = new THREE.SphereGeometry(1, 8, 8);
+        this.leafGeometry = new THREE.PlaneGeometry(0.1, 0.08);
+        this.ringGeometry = new THREE.TorusGeometry(1, 0.02, 6, 12);
+        this.beaconGeometry = new THREE.CylinderGeometry(0.04, 0.15, BEACON_HEIGHT, 6);
     }
 
     getTotalFruits() {
@@ -32,7 +39,7 @@ export class FruitManager {
         return this.fruits.filter((f) => !f.collected).length;
     }
 
-    spawnFruits(treePositions) {
+    spawnFruits(treePositions, world) {
         for (const treePos of treePositions) {
             for (let i = 0; i < FRUITS_PER_TREE; i++) {
                 const angle = (i / FRUITS_PER_TREE) * Math.PI * 2 + Math.random() * 0.5;
@@ -40,7 +47,8 @@ export class FruitManager {
 
                 const x = treePos.x + Math.cos(angle) * distance;
                 const z = treePos.z + Math.sin(angle) * distance;
-                const y = treePos.y + FRUIT_FLOAT_HEIGHT;
+                const groundY = world ? world.getHeightAt(x, z) : treePos.y;
+                const y = groundY + FRUIT_FLOAT_HEIGHT;
 
                 this.createFruit(x, y, z);
             }
@@ -51,38 +59,55 @@ export class FruitManager {
         const type = FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];
         const group = new THREE.Group();
 
-        // Fruit body
-        const geometry = new THREE.SphereGeometry(type.size, 10, 10);
         const material = new THREE.MeshLambertMaterial({
             color: type.color,
             emissive: type.color,
             emissiveIntensity: 0.15,
         });
-        const mesh = new THREE.Mesh(geometry, material);
+        const mesh = new THREE.Mesh(this.bodyGeometry, material);
+        mesh.scale.setScalar(type.size);
         group.add(mesh);
 
-        // Small leaf on top
-        const leafGeometry = new THREE.PlaneGeometry(0.1, 0.08);
-        const leafMaterial = new THREE.MeshLambertMaterial({
-            color: 0x228b22,
-            side: THREE.DoubleSide,
-        });
-        const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+        const leaf = new THREE.Mesh(this.leafGeometry,
+            new THREE.MeshLambertMaterial({ color: 0x228b22, side: THREE.DoubleSide }));
         leaf.position.set(0.03, type.size, 0);
         leaf.rotation.x = -0.3;
         leaf.rotation.z = 0.5;
         group.add(leaf);
 
-        // Glow ring
-        const ringGeometry = new THREE.TorusGeometry(type.size * 1.5, 0.02, 8, 16);
         const ringMaterial = new THREE.MeshBasicMaterial({
             color: type.color,
             transparent: true,
             opacity: 0.4,
         });
-        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        const ring = new THREE.Mesh(this.ringGeometry, ringMaterial);
+        ring.scale.setScalar(type.size * 1.5);
         ring.rotation.x = Math.PI / 2;
         group.add(ring);
+
+        const beaconMaterial = new THREE.MeshBasicMaterial({
+            color: type.color,
+            transparent: true,
+            opacity: 0.35,
+        });
+        const beacon = new THREE.Mesh(this.beaconGeometry, beaconMaterial);
+        beacon.position.y = BEACON_HEIGHT / 2;
+        beacon.visible = false;
+        group.add(beacon);
+
+        // Beacon top glow sphere
+        const beaconTopGeo = new THREE.SphereGeometry(0.12, 8, 8);
+        const beaconTopMat = new THREE.MeshBasicMaterial({
+            color: type.color,
+            transparent: true,
+            opacity: 0.5,
+        });
+        const beaconTop = new THREE.Mesh(beaconTopGeo, beaconTopMat);
+        beaconTop.position.y = BEACON_HEIGHT;
+        beaconTop.visible = false;
+        group.add(beaconTop);
+
+        group.scale.set(FRUIT_SCALE, FRUIT_SCALE, FRUIT_SCALE);
 
         group.position.set(x, y, z);
         this.scene.add(group);
@@ -91,6 +116,8 @@ export class FruitManager {
 
         this.fruits.push({
             group,
+            beacon,
+            beaconTop,
             baseY: y,
             phaseOffset,
             collected: false,
@@ -100,25 +127,65 @@ export class FruitManager {
         this.totalFruits++;
     }
 
-    update(delta, character, onCollect) {
+    setBeaconsVisible(visible) {
+        for (const fruit of this.fruits) {
+            if (!fruit.collected) {
+                fruit.beacon.visible = visible;
+                fruit.beaconTop.visible = visible;
+            }
+        }
+    }
+
+    getActivePositions() {
+        return this.fruits
+            .filter((f) => !f.collected)
+            .map((f) => f.group.position);
+    }
+
+    reset() {
+        for (const fruit of this.fruits) {
+            this.scene.remove(fruit.group);
+            fruit.group.traverse((child) => {
+                if (child.material) child.material.dispose();
+            });
+        }
+        this.fruits = [];
+        this.totalFruits = 0;
+        this.time = 0;
+    }
+
+    animate(delta) {
         this.time += delta;
+        for (const fruit of this.fruits) {
+            if (fruit.collected) continue;
+            fruit.group.position.y =
+                fruit.baseY +
+                Math.sin(this.time * FRUIT_BOUNCE_SPEED + fruit.phaseOffset) * FRUIT_BOUNCE_AMPLITUDE;
+            fruit.group.rotation.y = this.time * FRUIT_SPIN_SPEED;
+
+            // Pulse beacon
+            if (fruit.beacon.visible) {
+                const pulse = 0.25 + Math.sin(this.time * 2.5 + fruit.phaseOffset) * 0.12;
+                fruit.beacon.material.opacity = pulse;
+                fruit.beaconTop.material.opacity = 0.4 + Math.sin(this.time * 3 + fruit.phaseOffset) * 0.2;
+                const s = 0.1 + Math.sin(this.time * 3 + fruit.phaseOffset) * 0.04;
+                fruit.beaconTop.scale.setScalar(s / 0.12);
+            }
+        }
+    }
+
+    update(delta, character, onCollect) {
+        this.animate(delta);
         const characterPos = character.getPosition();
 
         for (let i = this.fruits.length - 1; i >= 0; i--) {
             const fruit = this.fruits[i];
             if (fruit.collected) continue;
 
-            // Animate floating and spinning
-            fruit.group.position.y =
-                fruit.baseY +
-                Math.sin(this.time * FRUIT_BOUNCE_SPEED + fruit.phaseOffset) * FRUIT_BOUNCE_AMPLITUDE;
-            fruit.group.rotation.y = this.time * FRUIT_SPIN_SPEED;
-
-            // Check collection
+            // Check collection using 2D (XZ) distance only
             const dx = characterPos.x - fruit.group.position.x;
-            const dy = characterPos.y - fruit.group.position.y;
             const dz = characterPos.z - fruit.group.position.z;
-            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            const distance = Math.sqrt(dx * dx + dz * dz);
 
             if (distance < COLLECTION_RADIUS) {
                 fruit.collected = true;
@@ -128,8 +195,6 @@ export class FruitManager {
     }
 
     collectFruit(fruit, onCollect) {
-        // Collection animation: scale up and fade
-        const startScale = fruit.group.scale.clone();
         const duration = 0.4;
         let elapsed = 0;
 
@@ -137,7 +202,7 @@ export class FruitManager {
             elapsed += 0.016;
             const t = Math.min(elapsed / duration, 1);
 
-            const scale = 1 + t * 0.5;
+            const scale = FRUIT_SCALE * (1 + t * 0.5);
             fruit.group.scale.set(scale, scale, scale);
 
             fruit.group.traverse((child) => {

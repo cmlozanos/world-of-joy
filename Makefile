@@ -1,6 +1,8 @@
 .PHONY: serve stop help
 
-PORT ?= 8080
+.DEFAULT_GOAL := help
+
+PORT ?= 9999
 
 ## serve: Start the development server on port $(PORT)
 serve:
@@ -18,4 +20,4 @@ help:
 	@echo ""
 	@grep -E '^##' Makefile | sed 's/## //' | column -t -s ':'
 	@echo ""
-	@echo "Usage: make [command] [PORT=8080]"
+	@echo "Usage: make [command] [PORT=9999]"

@@ -149,7 +149,6 @@ export class Wildlife {
 
         return {
             group,
-            world: null,
             phase: Math.random() * Math.PI * 2,
             hopTimer: Math.random() * 3,
             hopCooldown: 2 + Math.random() * 4,
@@ -313,13 +312,5 @@ export class Wildlife {
             b.leftWingPivot.rotation.z = flap;
             b.rightWingPivot.rotation.z = -flap;
         }
-    }
-
-    getActiveAnimals() {
-        return {
-            butterflies: this.butterflies.length,
-            rabbits: this.rabbits.length,
-            birds: this.birds.length,
-        };
     }
 }
