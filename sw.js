@@ -1,4 +1,4 @@
-const CACHE_NAME = 'world-of-joy-v1';
+const CACHE_NAME = 'world-of-joy-v2';
 
 const PRECACHE_URLS = [
     './',
