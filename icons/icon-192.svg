@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d5a27"/>
+      <stop offset="100%" style="stop-color:#4a7c42"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="32" fill="url(#bg)"/>
+  <text x="96" y="80" font-size="64" text-anchor="middle" dominant-baseline="central">🌳</text>
+  <text x="96" y="148" font-size="22" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-weight="bold">JOY</text>
+</svg>

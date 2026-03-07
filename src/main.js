@@ -20,6 +20,8 @@ import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
 import { TouchControls } from './engine/TouchControls.js';
 
+import { WordGame } from './WordGame.js';
+
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
     [MISSION_TYPE.BOUNCE_QUEST]: '\u{1F539} Trampol\u00edn m\u00e1s cercano',
@@ -539,3 +541,18 @@ class Game {
 }
 
 const game = new Game();
+let wordGame = null;
+
+function showStartScreen() {
+    document.getElementById('start-screen').style.display = 'flex';
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('word-hud').style.display = 'none';
+}
+
+document.getElementById('word-mode-button').addEventListener('click', () => {
+    game.isRunning = false;
+    if (!wordGame) {
+        wordGame = new WordGame(() => showStartScreen(), game.renderer);
+    }
+    wordGame.start();
+});

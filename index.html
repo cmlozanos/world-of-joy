@@ -2,9 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World of Joy - Recolector de Frutas</title>
-    <link rel="stylesheet" href="src/styles/main.css?v=20260306b">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>World of Joy</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2d5a27">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="World of Joy">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    <meta name="description" content="¡Explora el mundo abierto, recoge frutas y forma palabras!">
+
+    <link rel="stylesheet" href="src/styles/main.css?v=20260307">
 </head>
 <body>
     <div id="game-container">
@@ -89,10 +99,74 @@
                 </div>
             </div>
         </div>
+        <!-- Word Game HUD -->
+        <div id="word-hud" style="display:none;">
+            <div id="word-round-info">Ronda 1/8</div>
+            <div id="word-display"></div>
+            <div id="word-timer-container">
+                <div id="word-timer-bar-bg">
+                    <div id="word-timer-bar"></div>
+                </div>
+                <span id="word-timer-text">60</span>
+            </div>
+            <div id="word-message-container"></div>
+            <button id="word-back-btn" class="word-back-btn">← Menú</button>
+
+            <div id="word-briefing-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <h3 id="word-briefing-round">Ronda 1 / 8</h3>
+                    <h1>📝 Forma la Palabra</h1>
+                    <p id="word-briefing-word">? ? ? ?</p>
+                    <div id="word-briefing-countdown">3</div>
+                </div>
+            </div>
+
+            <div id="word-complete-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <h1>¡Palabra Completada!</h1>
+                    <div id="word-complete-stars">⭐⭐⭐</div>
+                    <p id="word-complete-word"></p>
+                    <button id="word-next-round-btn" class="round-btn">Siguiente Ronda</button>
+                </div>
+            </div>
+
+            <div id="word-time-up-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <span class="time-up-emoji">⏰</span>
+                    <h1>¡Se acabó el tiempo!</h1>
+                    <p id="word-time-up-text"></p>
+                    <div class="time-up-buttons">
+                        <button id="word-retry-btn" class="round-btn">🔄 Reintentar</button>
+                        <button id="word-finish-btn" class="round-btn">🏠 Menú</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="word-victory-screen" class="round-overlay">
+                <div class="round-overlay-content">
+                    <h1>🎉 ¡Victoria! 🎉</h1>
+                    <div id="word-victory-stars"></div>
+                    <p id="word-victory-score"></p>
+                    <button id="word-play-again-btn" class="round-btn">Jugar de Nuevo</button>
+                </div>
+            </div>
+        </div>
+
         <div id="start-screen">
             <h1>🌳 World of Joy 🌳</h1>
-            <p>¡Explora el mundo abierto y recoge toda la fruta!</p>
-            <button id="start-button">¡Jugar!</button>
+            <p>¡Elige un modo de juego!</p>
+            <div id="mode-buttons">
+                <button id="start-button" class="mode-btn">
+                    <span class="mode-icon">🍎</span>
+                    <span class="mode-title">Explorador</span>
+                    <span class="mode-desc">Recoge frutas en el mundo abierto</span>
+                </button>
+                <button id="word-mode-button" class="mode-btn">
+                    <span class="mode-icon">📝</span>
+                    <span class="mode-title">Palabras</span>
+                    <span class="mode-desc">Forma palabras recogiendo letras</span>
+                </button>
+            </div>
         </div>
         <div id="loading-screen">
             <div id="loading-bar-container">
@@ -110,6 +184,11 @@
         }
     }
     </script>
-    <script type="module" src="src/main.js?v=20260306b"></script>
+    <script type="module" src="src/main.js?v=20260307"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+    </script>
 </body>
 </html>
