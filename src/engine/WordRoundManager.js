@@ -3,7 +3,6 @@ export const WORD_STATE = {
     BRIEFING: 'BRIEFING',
     PLAYING: 'PLAYING',
     ROUND_COMPLETE: 'ROUND_COMPLETE',
-    TIME_UP: 'TIME_UP',
     VICTORY: 'VICTORY',
 };
 
@@ -26,7 +25,6 @@ const WORD_POOL = [
 ];
 
 const BRIEFING_DURATION = 3;
-const TIME_PER_LETTER = 8; // seconds per letter in the word
 
 export class WordRoundManager {
     constructor() {
@@ -34,7 +32,6 @@ export class WordRoundManager {
         this.rounds = [];
         this.state = WORD_STATE.IDLE;
         this.collectedLetters = [];
-        this.timeRemaining = 0;
         this.briefingTimer = 0;
         this.totalRounds = 8;
         this.roundStars = [];
@@ -63,7 +60,6 @@ export class WordRoundManager {
         this.rounds = picks.slice(0, this.totalRounds).map((word, i) => ({
             id: i + 1,
             word: word.toUpperCase(),
-            timeLimit: word.length * TIME_PER_LETTER,
         }));
     }
 
@@ -84,7 +80,6 @@ export class WordRoundManager {
         this.state = WORD_STATE.BRIEFING;
         this.briefingTimer = BRIEFING_DURATION;
         this.collectedLetters = [];
-        this.timeRemaining = this.getCurrentRound().timeLimit;
     }
 
     update(delta) {
@@ -93,12 +88,6 @@ export class WordRoundManager {
             if (this.briefingTimer <= 0) {
                 this.briefingTimer = 0;
                 this.state = WORD_STATE.PLAYING;
-            }
-        } else if (this.state === WORD_STATE.PLAYING) {
-            this.timeRemaining -= delta;
-            if (this.timeRemaining <= 0) {
-                this.timeRemaining = 0;
-                this.state = WORD_STATE.TIME_UP;
             }
         }
     }
@@ -112,12 +101,7 @@ export class WordRoundManager {
     }
 
     _completeRound() {
-        const round = this.getCurrentRound();
-        const timePercent = (this.timeRemaining / round.timeLimit) * 100;
-        let stars = 1;
-        if (timePercent > 50) stars = 3;
-        else if (timePercent > 25) stars = 2;
-
+        const stars = 3;
         this.roundStars.push(stars);
         this.totalScore += this.collectedLetters.length;
         this.state = WORD_STATE.ROUND_COMPLETE;
@@ -146,11 +130,6 @@ export class WordRoundManager {
 
     isPlaying() {
         return this.state === WORD_STATE.PLAYING;
-    }
-
-    retryRound() {
-        this.currentRoundIndex--;
-        this.startNextRound();
     }
 
     restart() {

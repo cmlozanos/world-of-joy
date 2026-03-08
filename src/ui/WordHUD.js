@@ -11,8 +11,6 @@ const LETTER_COLORS = {
 export class WordHUD {
     constructor() {
         this.wordDisplay = document.getElementById('word-display');
-        this.wordTimerBar = document.getElementById('word-timer-bar');
-        this.wordTimerText = document.getElementById('word-timer-text');
         this.wordRoundInfo = document.getElementById('word-round-info');
         this.wordHud = document.getElementById('word-hud');
         this.wordMessageContainer = document.getElementById('word-message-container');
@@ -23,8 +21,7 @@ export class WordHUD {
         this.wordComplete = document.getElementById('word-complete-screen');
         this.wordCompleteStars = document.getElementById('word-complete-stars');
         this.wordCompleteWord = document.getElementById('word-complete-word');
-        this.wordTimeUp = document.getElementById('word-time-up-screen');
-        this.wordTimeUpText = document.getElementById('word-time-up-text');
+
         this.wordVictory = document.getElementById('word-victory-screen');
         this.wordVictoryStars = document.getElementById('word-victory-stars');
         this.wordVictoryScore = document.getElementById('word-victory-score');
@@ -78,17 +75,7 @@ export class WordHUD {
         }
     }
 
-    updateTimer(timeRemaining, timeLimit) {
-        const percent = (timeRemaining / timeLimit) * 100;
-        this.wordTimerBar.style.width = `${percent}%`;
-        this.wordTimerText.textContent = Math.ceil(timeRemaining);
 
-        if (timeRemaining <= 10) {
-            this.wordTimerBar.classList.add('timer-critical');
-        } else {
-            this.wordTimerBar.classList.remove('timer-critical');
-        }
-    }
 
     setRoundInfo(roundNum, totalRounds) {
         this.wordRoundInfo.textContent = `Ronda ${roundNum}/${totalRounds}`;
@@ -164,11 +151,7 @@ export class WordHUD {
         this.wordComplete.style.display = 'flex';
     }
 
-    showTimeUp(collected, total) {
-        this.hideAllOverlays();
-        this.wordTimeUpText.textContent = `Recogiste ${collected} de ${total} letras`;
-        this.wordTimeUp.style.display = 'flex';
-    }
+
 
     showVictory(totalStars, maxStars, totalScore) {
         this.hideAllOverlays();
@@ -180,7 +163,6 @@ export class WordHUD {
     hideAllOverlays() {
         this.wordBriefing.style.display = 'none';
         this.wordComplete.style.display = 'none';
-        this.wordTimeUp.style.display = 'none';
         this.wordVictory.style.display = 'none';
     }
 

@@ -94,13 +94,7 @@ export class WordGame {
             this.roundManager.startNextRound();
         });
 
-        document.getElementById('word-retry-btn').addEventListener('click', () => {
-            this.roundManager.retryRound();
-        });
 
-        document.getElementById('word-finish-btn').addEventListener('click', () => {
-            this.goToMenu();
-        });
 
         document.getElementById('word-play-again-btn').addEventListener('click', () => {
             this.roundManager.restart();
@@ -188,14 +182,6 @@ export class WordGame {
                 );
                 break;
 
-            case WORD_STATE.TIME_UP:
-                if (this.touchControls) this.touchControls.hide();
-                this.hud.showTimeUp(
-                    this.roundManager.collectedLetters.length,
-                    round.word.length
-                );
-                break;
-
             case WORD_STATE.VICTORY:
                 if (this.touchControls) this.touchControls.hide();
                 this.music.stop();
@@ -273,7 +259,6 @@ export class WordGame {
             this.particles.emitFruitCollect(letter.group.position);
         });
 
-        this.hud.updateTimer(this.roundManager.timeRemaining, round.timeLimit);
         this.hud.updateWordDisplay(round.word, this.roundManager.collectedLetters);
     }
 
