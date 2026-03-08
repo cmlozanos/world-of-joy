@@ -10,18 +10,30 @@ export const WORD_STATE = {
 const WORD_POOL = [
     // 3 letters
     'SOL', 'PAZ', 'LUZ', 'MAR', 'RIO',
+    'FIN', 'AVE', 'OJO', 'DIA', 'MES',
     // 4 letters
     'AMOR', 'VIDA', 'RISA', 'ARCO', 'LUNA',
     'FLOR', 'AZUL', 'NUBE', 'ARTE', 'BESO',
+    'AGUA', 'CIELO', 'ROSA', 'CAFE', 'RAYO',
+    'PUMA', 'LAGO', 'HOJA', 'PATO', 'ISLA',
     // 5 letters
-    'SALUD', 'SUEÑO', 'BAILE', 'BRAVO', 'GENIO',
-    'JUGAR', 'REINA', 'PODER', 'CAMPO', 'DULCE',
+    'SALUD', 'BAILE', 'BRAVO', 'GENIO', 'JUGAR',
+    'REINA', 'PODER', 'CAMPO', 'DULCE', 'PLAYA',
+    'FELIZ', 'LIBRE', 'SABIO', 'NOBLE', 'LINDO',
+    'CANTO', 'TIGRE', 'FUEGO', 'NIEVE', 'ANGEL',
+    'REMAR', 'NADAR', 'LIMON', 'GLOBO', 'PERLA',
     // 6 letters
     'AMABLE', 'BONITO', 'BRILLO', 'FUTURO', 'PLANTA',
-    'CANTAR', 'MAXIMO', 'BUENAS', 'ABRAZO', 'VALENT',
+    'CANTAR', 'ABRAZO', 'JARDIN', 'TESORO', 'CUMBRE',
+    'PASION', 'PINTAR', 'OCEANO', 'LUCERO', 'MADERA',
+    'CAMINO', 'PUENTE', 'PIEDRA', 'DRAGON', 'BOSQUE',
+    'CORRER', 'VIENTO', 'PUEBLO', 'MUSICA', 'FIESTA',
     // 7 letters
     'ALEGRIA', 'AMISTAD', 'VALIOSO', 'SINCERO', 'HERMOSO',
-    'CREATIV', 'FAMILIA', 'ESTRELA', 'SONRISA', 'ENERGIA',
+    'FAMILIA', 'SONRISA', 'ENERGIA', 'VALENTE', 'ARCOIRI',
+    'CRIANZA', 'AVENTUR', 'ESTRELA', 'COLORES', 'COSECHA',
+    'CASCADA', 'GUARDIA', 'PINTURA', 'LECTURA', 'PALACIO',
+    'DIAMANT', 'PLANETA', 'MONTAÑA', 'CASTILO', 'VICTORIA',
 ];
 
 const BRIEFING_DURATION = 3;
@@ -33,28 +45,33 @@ export class WordRoundManager {
         this.state = WORD_STATE.IDLE;
         this.collectedLetters = [];
         this.briefingTimer = 0;
-        this.totalRounds = 8;
+        this.totalRounds = 100;
         this.roundStars = [];
         this.totalScore = 0;
         this._generateRounds();
     }
 
     _generateRounds() {
-        // Shuffle and pick words, progressively harder (longer words)
+        // Shuffle pool and build rounds with progressive difficulty
         const shuffled = [...WORD_POOL].sort(() => Math.random() - 0.5);
         const short = shuffled.filter(w => w.length <= 4);
         const medium = shuffled.filter(w => w.length === 5 || w.length === 6);
         const long = shuffled.filter(w => w.length >= 7);
 
+        // Start easy, gradually get harder
         const picks = [
-            ...short.slice(0, 3),
-            ...medium.slice(0, 3),
-            ...long.slice(0, 2),
+            ...short.slice(0, 20),
+            ...medium.slice(0, 40),
+            ...long.slice(0, 40),
         ];
 
-        // Ensure we have enough, fill remaining from pool
+        // Fill remaining from reshuffled pool to reach 100
         while (picks.length < this.totalRounds) {
-            picks.push(WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)]);
+            const extra = [...WORD_POOL].sort(() => Math.random() - 0.5);
+            for (const w of extra) {
+                if (picks.length >= this.totalRounds) break;
+                picks.push(w);
+            }
         }
 
         this.rounds = picks.slice(0, this.totalRounds).map((word, i) => ({
