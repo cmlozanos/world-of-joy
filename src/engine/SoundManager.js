@@ -1,20 +1,172 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext;
+const SpeechUtterance = window.SpeechSynthesisUtterance;
+
+const SPANISH_LETTER_NAMES = {
+    A: 'a',
+    B: 'be',
+    C: 'ce',
+    D: 'de',
+    E: 'e',
+    F: 'efe',
+    G: 'ge',
+    H: 'hache',
+    I: 'i',
+    J: 'jota',
+    K: 'ka',
+    L: 'ele',
+    M: 'eme',
+    N: 'ene',
+    '\u00D1': 'e\u00F1e',
+    O: 'o',
+    P: 'pe',
+    Q: 'cu',
+    R: 'erre',
+    S: 'ese',
+    T: 'te',
+    U: 'u',
+    V: 'uve',
+    W: 'uve doble',
+    X: 'equis',
+    Y: 'ye',
+    Z: 'zeta',
+};
 
 export class SoundManager {
     constructor() {
         this.ctx = null;
         this.enabled = true;
         this.initialized = false;
+        this.speech = typeof window !== 'undefined' ? window.speechSynthesis : null;
+        this.speechVoice = null;
+        this._voicesChangedHandler = () => {
+            this.speechVoice = this.getPreferredSpanishVoice();
+        };
     }
 
     init() {
-        if (this.initialized) return;
-        this.ctx = new AudioContext();
+        if (!this.ctx) {
+            this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        if (!this.initialized) {
+            this.initSpeech();
+        }
         this.initialized = true;
     }
 
     getAudioContext() {
         return this.ctx;
+    }
+
+    initSpeech() {
+        if (!this.speech || !SpeechUtterance) return;
+
+        this.speechVoice = this.getPreferredSpanishVoice();
+
+        if (typeof this.speech.addEventListener === 'function') {
+            this.speech.addEventListener('voiceschanged', this._voicesChangedHandler);
+        } else {
+            this.speech.onvoiceschanged = this._voicesChangedHandler;
+        }
+    }
+
+    getPreferredSpanishVoice() {
+        if (!this.speech || typeof this.speech.getVoices !== 'function') return null;
+
+        const voices = this.speech.getVoices();
+        if (!voices.length) return null;
+
+        const scoreVoice = (voice) => {
+            const lang = (voice.lang || '').toLowerCase();
+            const name = (voice.name || '').toLowerCase();
+            let score = 0;
+
+            if (lang === 'es-es') score += 100;
+            else if (lang.startsWith('es-es')) score += 90;
+            else if (lang.startsWith('es')) score += 50;
+
+            if (name.includes('spain')) score += 20;
+            if (name.includes('castell')) score += 20;
+            if (name.includes('jorge')) score += 5;
+            if (voice.default) score += 5;
+
+            return score;
+        };
+
+        return [...voices]
+            .filter((voice) => (voice.lang || '').toLowerCase().startsWith('es'))
+            .sort((left, right) => scoreVoice(right) - scoreVoice(left))[0] || null;
+    }
+
+    createSpeechUtterance(text, options = {}) {
+        if (!this.speech || !SpeechUtterance || !text) return null;
+
+        if (!this.speechVoice) {
+            this.speechVoice = this.getPreferredSpanishVoice();
+        }
+
+        const utterance = new SpeechUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = options.rate ?? 0.95;
+        utterance.pitch = options.pitch ?? 1;
+        utterance.volume = options.volume ?? 1;
+
+        if (this.speechVoice) {
+            utterance.voice = this.speechVoice;
+            utterance.lang = this.speechVoice.lang || 'es-ES';
+        }
+
+        return utterance;
+    }
+
+    speakText(text, options = {}) {
+        if (!this.enabled || !this.speech || !SpeechUtterance || !text) return;
+
+        if (options.interrupt) {
+            this.cancelSpeech();
+        }
+
+        const utterance = this.createSpeechUtterance(text, options);
+        if (!utterance) return;
+
+        this.speech.speak(utterance);
+    }
+
+    speakWord(word, options = {}) {
+        if (!word) return;
+
+        const normalizedWord = String(word).toLocaleLowerCase('es-ES');
+        this.speakText(normalizedWord, {
+            rate: 0.4,
+            pitch: 1,
+            ...options,
+        });
+    }
+
+    speakLetter(letter, options = {}) {
+        if (!letter) return;
+
+        const rawLetter = String(letter).trim();
+        if (!rawLetter) return;
+
+        const upperLetter = rawLetter.toUpperCase();
+        const baseLetter = upperLetter === '\u00D1'
+            ? upperLetter
+            : upperLetter.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const text = SPANISH_LETTER_NAMES[baseLetter] || rawLetter.toLocaleLowerCase('es-ES');
+
+        this.speakText(text, {
+            rate: 0.4,
+            pitch: 1.05,
+            ...options,
+        });
+    }
+
+    cancelSpeech() {
+        if (!this.speech) return;
+        this.speech.cancel();
     }
 
     playNote(frequency, duration, type = 'sine', volume = 0.15) {

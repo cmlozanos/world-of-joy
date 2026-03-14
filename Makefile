@@ -1,8 +1,11 @@
-.PHONY: serve stop help
+.PHONY: run serve stop help
 
 .DEFAULT_GOAL := help
 
 PORT ?= 9999
+
+## run: Alias of serve
+run: serve
 
 ## serve: Start the development server on port $(PORT)
 serve:

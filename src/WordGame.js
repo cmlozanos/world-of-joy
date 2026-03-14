@@ -90,20 +90,33 @@ export class WordGame {
         this._resizeHandler = () => this.onResize();
         window.addEventListener('resize', this._resizeHandler);
 
-        document.getElementById('word-next-round-btn').addEventListener('click', () => {
-            this.roundManager.startNextRound();
-        });
+        const nextRoundButton = document.getElementById('word-next-round-btn');
+        if (nextRoundButton) {
+            nextRoundButton.addEventListener('click', () => {
+                this.roundManager.startNextRound();
+            });
+        } else {
+            console.warn('Missing #word-next-round-btn button in word mode HUD');
+        }
 
+        const playAgainButton = document.getElementById('word-play-again-btn');
+        if (playAgainButton) {
+            playAgainButton.addEventListener('click', () => {
+                this.roundManager.restart();
+                this.roundManager.startNextRound();
+            });
+        } else {
+            console.warn('Missing #word-play-again-btn button in word mode HUD');
+        }
 
-
-        document.getElementById('word-play-again-btn').addEventListener('click', () => {
-            this.roundManager.restart();
-            this.roundManager.startNextRound();
-        });
-
-        document.getElementById('word-back-btn').addEventListener('click', () => {
-            this.goToMenu();
-        });
+        const backButton = document.getElementById('word-back-btn');
+        if (backButton) {
+            backButton.addEventListener('click', () => {
+                this.goToMenu();
+            });
+        } else {
+            console.warn('Missing #word-back-btn button in word mode HUD');
+        }
     }
 
     start() {
@@ -147,6 +160,7 @@ export class WordGame {
         this.isRunning = false;
         this.music.stop();
         this.sound.stopAmbient();
+        this.sound.cancelSpeech();
         this.hud.hide();
         if (this.touchControls) this.touchControls.hide();
     }
@@ -164,6 +178,7 @@ export class WordGame {
             case WORD_STATE.BRIEFING:
                 this.setupRound(round);
                 this.hud.showBriefing(round, totalRounds);
+                this.sound.speakWord(round.word, { interrupt: true });
                 if (this.touchControls) this.touchControls.hide();
                 break;
 
@@ -180,6 +195,7 @@ export class WordGame {
                     this.roundManager.getLastRoundStars(),
                     this.roundManager.getTargetWord()
                 );
+                this.sound.speakWord(this.roundManager.getTargetWord());
                 break;
 
             case WORD_STATE.VICTORY:
@@ -256,6 +272,7 @@ export class WordGame {
             );
             this.hud.showCollectMessage();
             this.sound.playFruitCollect();
+            this.sound.speakLetter(letter.char);
             this.particles.emitFruitCollect(letter.group.position);
         });
 

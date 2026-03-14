@@ -11,6 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="World of Joy">
+    <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
     <link rel="apple-touch-icon" href="icons/icon-192.svg">
     <meta name="description" content="¡Explora el mundo abierto, recoge frutas y forma palabras!">
 
@@ -171,8 +172,26 @@
     </script>
     <script type="module" src="src/main.js?v=20260308"></script>
     <script>
+        const isLocalDevHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
+            if (isLocalDevHost) {
+                navigator.serviceWorker.getRegistrations().then((registrations) =>
+                    Promise.all(registrations.map((registration) => registration.unregister()))
+                );
+
+                if ('caches' in window) {
+                    caches.keys().then((keys) =>
+                        Promise.all(
+                            keys
+                                .filter((key) => key.startsWith('world-of-joy'))
+                                .map((key) => caches.delete(key))
+                        )
+                    );
+                }
+            } else {
+                navigator.serviceWorker.register('./sw.js');
+            }
         }
     </script>
 </body>
