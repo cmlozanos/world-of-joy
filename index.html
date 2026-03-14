@@ -103,7 +103,10 @@
         <!-- Word Game HUD -->
         <div id="word-hud" style="display:none;">
             <div id="word-round-info">Ronda 1/8</div>
-            <div id="word-display"></div>
+            <div id="word-display-panel">
+                <div id="word-display"></div>
+                <button id="word-replay-btn" class="word-audio-btn" type="button" aria-label="Escuchar la palabra" title="Escuchar la palabra">🔊</button>
+            </div>
 
             <div id="word-message-container"></div>
             <button id="word-back-btn" class="word-back-btn">← Menú</button>
@@ -121,7 +124,10 @@
                 <div class="round-overlay-content">
                     <h1>¡Palabra Completada!</h1>
                     <div id="word-complete-stars">⭐⭐⭐</div>
-                    <p id="word-complete-word"></p>
+                    <div id="word-complete-word-row">
+                        <p id="word-complete-word"></p>
+                        <button id="word-complete-replay-btn" class="word-audio-btn word-audio-btn-large" type="button" aria-label="Escuchar la palabra de nuevo" title="Escuchar la palabra de nuevo">🔊</button>
+                    </div>
                     <button id="word-next-round-btn" class="round-btn">Siguiente Ronda</button>
                 </div>
             </div>
@@ -170,7 +176,7 @@
         }
     }
     </script>
-    <script type="module" src="src/main.js?v=20260308"></script>
+    <script type="module" src="src/main.js?v=20260314"></script>
     <script>
         const isLocalDevHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 

@@ -275,11 +275,18 @@ body {
     backdrop-filter: blur(5px);
 }
 
-#word-display {
+#word-display-panel {
     position: absolute;
     top: 16px;
     left: 50%;
     transform: translateX(-50%);
+    display: none;
+    gap: 12px;
+    align-items: center;
+    z-index: 12;
+}
+
+#word-display {
     display: flex;
     gap: 8px;
     align-items: center;
@@ -288,6 +295,43 @@ body {
     padding: 10px 24px;
     border: 2px solid rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(5px);
+}
+
+.word-audio-btn {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffd700;
+    border: 2px solid rgba(255, 215, 0, 0.35);
+    border-radius: 14px;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.word-audio-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(24, 24, 24, 0.88);
+    border-color: rgba(255, 215, 0, 0.7);
+}
+
+.word-audio-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+}
+
+.word-audio-btn-large {
+    width: 54px;
+    height: 54px;
+    font-size: 26px;
 }
 
 .word-letter {
@@ -365,11 +409,20 @@ body {
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
+#word-complete-word-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 12px 0 24px;
+}
+
 #word-complete-word {
     font-size: 36px;
     letter-spacing: 8px;
     color: #ffd700;
     font-weight: bold;
+    margin: 0;
 }
 
 #loading-screen {
@@ -952,9 +1005,31 @@ body {
         min-width: 22px;
     }
 
+    #word-display-panel {
+        gap: 8px;
+    }
+
     #word-display {
         padding: 6px 14px;
         gap: 4px;
+    }
+
+    .word-audio-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        border-radius: 12px;
+    }
+
+    .word-audio-btn-large {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+    }
+
+    #word-complete-word-row {
+        gap: 8px;
+        margin: 10px 0 20px;
     }
 
     #word-round-info {

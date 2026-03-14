@@ -10,7 +10,9 @@ const LETTER_COLORS = {
 
 export class WordHUD {
     constructor() {
+        this.wordDisplayPanel = document.getElementById('word-display-panel');
         this.wordDisplay = document.getElementById('word-display');
+        this.wordReplayButton = document.getElementById('word-replay-btn');
         this.wordRoundInfo = document.getElementById('word-round-info');
         this.wordHud = document.getElementById('word-hud');
         this.wordMessageContainer = document.getElementById('word-message-container');
@@ -21,6 +23,7 @@ export class WordHUD {
         this.wordComplete = document.getElementById('word-complete-screen');
         this.wordCompleteStars = document.getElementById('word-complete-stars');
         this.wordCompleteWord = document.getElementById('word-complete-word');
+        this.wordCompleteReplayButton = document.getElementById('word-complete-replay-btn');
 
         this.wordVictory = document.getElementById('word-victory-screen');
         this.wordVictoryStars = document.getElementById('word-victory-stars');
@@ -28,6 +31,8 @@ export class WordHUD {
 
         this.messageQueue = [];
         this.isShowingMessage = false;
+        this.currentReplayWord = '';
+        this.replayHandler = null;
 
         this.collectMessages = [
             '¡Muy bien! ¡Sigue así! 🌟',
@@ -37,6 +42,8 @@ export class WordHUD {
             '¡Buen ojo! ¡Sigue recogiendo! 🏆',
             '¡Bravo! ¡Eres un crack! ⭐',
         ];
+
+        this.bindReplayButtons();
     }
 
     show() {
@@ -45,7 +52,53 @@ export class WordHUD {
 
     hide() {
         this.wordHud.style.display = 'none';
+        this.hideWordDisplayPanel();
         this.hideAllOverlays();
+    }
+
+    bindReplayButtons() {
+        const replayCurrentWord = () => {
+            if (!this.replayHandler || !this.currentReplayWord) return;
+            this.replayHandler(this.currentReplayWord);
+        };
+
+        [this.wordReplayButton, this.wordCompleteReplayButton].forEach((button) => {
+            if (!button) return;
+            button.addEventListener('click', replayCurrentWord);
+        });
+
+        this.updateReplayButtons();
+    }
+
+    setReplayHandler(handler) {
+        this.replayHandler = handler;
+        this.updateReplayButtons();
+    }
+
+    setReplayWord(word) {
+        this.currentReplayWord = word || '';
+        this.updateReplayButtons();
+    }
+
+    updateReplayButtons() {
+        const disabled = !this.currentReplayWord || !this.replayHandler;
+
+        [this.wordReplayButton, this.wordCompleteReplayButton].forEach((button) => {
+            if (!button) return;
+            button.disabled = disabled;
+        });
+    }
+
+    showWordDisplayPanel() {
+        if (this.wordDisplayPanel) {
+            this.wordDisplayPanel.style.display = 'flex';
+        }
+    }
+
+    hideWordDisplayPanel() {
+        if (this.wordDisplayPanel) {
+            this.wordDisplayPanel.style.display = 'none';
+        }
     }
 
     updateWordDisplay(targetWord, collectedLetters) {
@@ -121,6 +174,8 @@ export class WordHUD {
 
     showBriefing(round, totalRounds) {
         this.hideAllOverlays();
+        this.hideWordDisplayPanel();
+        this.setReplayWord(round.word);
         this.wordBriefingRound.textContent = `Ronda ${round.id} / ${totalRounds}`;
         this.wordBriefingWord.textContent = round.word.split('').join(' ');
         this.wordBriefing.style.display = 'flex';
@@ -141,11 +196,15 @@ export class WordHUD {
     showGameplayUI(round, totalRounds) {
         this.hideAllOverlays();
         this.setRoundInfo(round.id, totalRounds);
+        this.setReplayWord(round.word);
+        this.showWordDisplayPanel();
         this.updateWordDisplay(round.word, []);
     }
 
     showRoundComplete(stars, word) {
         this.hideAllOverlays();
+        this.hideWordDisplayPanel();
+        this.setReplayWord(word);
         this.wordCompleteStars.textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
         this.wordCompleteWord.textContent = word;
         this.wordComplete.style.display = 'flex';
@@ -155,6 +214,8 @@ export class WordHUD {
 
     showVictory(totalStars, maxStars, totalScore) {
         this.hideAllOverlays();
+        this.hideWordDisplayPanel();
+        this.setReplayWord('');
         this.wordVictoryStars.textContent = `${totalStars} / ${maxStars} ⭐`;
         this.wordVictoryScore.textContent = `Palabras completadas: ${totalScore}`;
         this.wordVictory.style.display = 'flex';

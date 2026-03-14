@@ -7,7 +7,7 @@ import { WordRoundManager, WORD_STATE } from './engine/WordRoundManager.js';
 import { Character } from './entities/Character.js';
 import { LetterManager } from './entities/LetterManager.js';
 import { Room } from './world/Room.js';
-import { WordHUD } from './ui/WordHUD.js';
+import { WordHUD } from './ui/WordHUD.js?v=20260314';
 import { MusicManager } from './engine/MusicManager.js';
 import { TouchControls } from './engine/TouchControls.js';
 
@@ -78,6 +78,13 @@ export class WordGame {
         this.particles = new ParticleSystem(this.scene);
         this.cameraController = new ThirdPersonCamera(this.camera, this.character);
         this.hud = new WordHUD();
+        if (typeof this.hud.setReplayHandler === 'function') {
+            this.hud.setReplayHandler((word) => {
+                this.sound.speakWord(word, { interrupt: true });
+            });
+        } else {
+            console.warn('WordHUD replay support unavailable; reloading fresh modules may be required.');
+        }
         this.music = new MusicManager();
         this.roundManager = new WordRoundManager();
         this.touchControls = TouchControls.isTouchDevice() ? new TouchControls(this.input) : null;

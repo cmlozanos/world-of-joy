@@ -20,7 +20,7 @@ import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
 import { TouchControls } from './engine/TouchControls.js';
 
-import { WordGame } from './WordGame.js';
+import { WordGame } from './WordGame.js?v=20260314';
 
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
