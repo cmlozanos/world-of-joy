@@ -134,6 +134,9 @@ export class TouchControls {
         this.joystickOffset.x = 0;
         this.joystickOffset.y = 0;
         this.joystickKnob.style.transform = 'translate(0, 0)';
+        this.joystickBase.style.left = '50px';
+        this.joystickBase.style.top = 'auto';
+        this.joystickBase.style.bottom = '20px';
         this.joystickBase.style.opacity = '0.5';
         this.updateInputFromJoystick();
     }
@@ -197,11 +200,15 @@ export class TouchControls {
         jumpLabel = 'Saltar',
         runLabel = 'Correr',
     } = {}) {
+        const hasActionButtons = showJump || showRun;
+
         this.jumpBtn.textContent = jumpLabel;
         this.runBtn.textContent = runLabel;
         this.jumpBtn.style.display = showJump ? 'flex' : 'none';
         this.runBtn.style.display = showRun ? 'flex' : 'none';
-        this.buttonsArea.style.display = showJump || showRun ? 'flex' : 'none';
+        this.buttonsArea.style.display = hasActionButtons ? 'flex' : 'none';
+        this.joystickArea.style.width = hasActionButtons ? '50%' : '100%';
+        this.container.style.justifyContent = hasActionButtons ? 'space-between' : 'flex-start';
 
         if (!showJump) {
             this.jumpTouchId = null;
@@ -216,6 +223,20 @@ export class TouchControls {
         }
     }
 
+    resetAllInputs() {
+        this.resetJoystick();
+        this.jumpTouchId = null;
+        this.runTouchId = null;
+        this.input.keys.KeyW = false;
+        this.input.keys.KeyS = false;
+        this.input.keys.KeyA = false;
+        this.input.keys.KeyD = false;
+        this.input.keys.Space = false;
+        this.input.keys.ShiftLeft = false;
+        this.jumpBtn.classList.remove('active');
+        this.runBtn.classList.remove('active');
+    }
+
     show() {
         this.visible = true;
         this.container.style.display = 'flex';
@@ -223,6 +244,7 @@ export class TouchControls {
 
     hide() {
         this.visible = false;
+        this.resetAllInputs();
         this.container.style.display = 'none';
     }
 
