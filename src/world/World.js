@@ -8,6 +8,24 @@ const ROCK_COUNT = 120;
 const BUSH_COUNT = 180;
 const FLOWER_COUNT = 150;
 const TREE_COLLISION_RADIUS = 0.8;
+const ROAD_WIDTH = 14;
+const ROAD_SAMPLE_COUNT = 320;
+const ROAD_CLEARANCE = ROAD_WIDTH * 0.7;
+
+const ROAD_CONTROL_POINTS = [
+    new THREE.Vector3(-240, 0, -180),
+    new THREE.Vector3(-150, 0, -235),
+    new THREE.Vector3(-20, 0, -230),
+    new THREE.Vector3(120, 0, -205),
+    new THREE.Vector3(220, 0, -120),
+    new THREE.Vector3(245, 0, 10),
+    new THREE.Vector3(210, 0, 145),
+    new THREE.Vector3(105, 0, 225),
+    new THREE.Vector3(-40, 0, 245),
+    new THREE.Vector3(-175, 0, 210),
+    new THREE.Vector3(-245, 0, 95),
+    new THREE.Vector3(-255, 0, -45),
+];
 
 export class World {
     constructor(scene) {
@@ -17,10 +35,12 @@ export class World {
         this.heightData = null;
         this._dummy = new THREE.Object3D();
         this._color = new THREE.Color();
+        this.buildRoadData();
     }
 
     generate(onComplete) {
         this.createTerrain();
+        this.createRoad();
         this.createTrees();
         this.createRocks();
         this.createBushes();
@@ -29,6 +49,22 @@ export class World {
 
         if (onComplete) {
             setTimeout(onComplete, 100);
+        }
+    }
+
+    buildRoadData() {
+        this.roadCurve = new THREE.CatmullRomCurve3(
+            ROAD_CONTROL_POINTS.map((point) => point.clone()),
+            true,
+            'catmullrom',
+            0.12
+        );
+
+        this.roadSamples = [];
+        for (let index = 0; index < ROAD_SAMPLE_COUNT; index++) {
+            const point = this.roadCurve.getPoint(index / ROAD_SAMPLE_COUNT);
+            point.y = 0;
+            this.roadSamples.push(point);
         }
     }
 
@@ -63,6 +99,78 @@ export class World {
         terrain.receiveShadow = true;
         this.scene.add(terrain);
         this.terrain = terrain;
+    }
+
+    createRoad() {
+        const positions = [];
+        const uvs = [];
+        const indices = [];
+
+        for (let index = 0; index <= ROAD_SAMPLE_COUNT; index++) {
+            const t = index / ROAD_SAMPLE_COUNT;
+            const center = this.roadCurve.getPointAt(t);
+            const tangent = this.roadCurve.getTangentAt(t).setY(0).normalize();
+            const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+
+            const left = center.clone().addScaledVector(normal, ROAD_WIDTH / 2);
+            const right = center.clone().addScaledVector(normal, -ROAD_WIDTH / 2);
+
+            left.y = this.getHeightAt(left.x, left.z) + 0.06;
+            right.y = this.getHeightAt(right.x, right.z) + 0.06;
+
+            positions.push(left.x, left.y, left.z, right.x, right.y, right.z);
+            uvs.push(0, t * 32, 1, t * 32);
+
+            if (index < ROAD_SAMPLE_COUNT) {
+                const i = index * 2;
+                indices.push(i, i + 1, i + 2, i + 1, i + 3, i + 2);
+            }
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geometry.setIndex(indices);
+        geometry.computeVertexNormals();
+
+        const road = new THREE.Mesh(
+            geometry,
+            new THREE.MeshLambertMaterial({ color: 0x40464d })
+        );
+        road.receiveShadow = true;
+        this.scene.add(road);
+        this.road = road;
+
+        this.createRoadMarkings();
+    }
+
+    createRoadMarkings() {
+        const markingCount = 120;
+        const markingGeometry = new THREE.BoxGeometry(0.3, 0.04, 2.4);
+        const markingMaterial = new THREE.MeshLambertMaterial({ color: 0xf3f2dd });
+        const markings = new THREE.InstancedMesh(markingGeometry, markingMaterial, Math.ceil(markingCount / 2));
+        markings.castShadow = false;
+        markings.receiveShadow = true;
+
+        const dummy = this._dummy;
+        let meshIndex = 0;
+
+        for (let index = 0; index < markingCount; index++) {
+            if (index % 2 !== 0) continue;
+
+            const t = index / markingCount;
+            const { position, tangent } = this.getRoadPoint(t);
+            dummy.position.set(position.x, position.y + 0.09, position.z);
+            dummy.rotation.set(0, Math.atan2(tangent.x, tangent.z), 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            markings.setMatrixAt(meshIndex, dummy.matrix);
+            meshIndex++;
+        }
+
+        markings.instanceMatrix.needsUpdate = true;
+        this.scene.add(markings);
+        this.roadMarkings = markings;
     }
 
     generateHeight(x, z) {
@@ -106,6 +214,7 @@ export class World {
             const z = (Math.random() - 0.5) * 2 * halfWorld;
 
             if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 3)) continue;
 
             const y = this.getHeightAt(x, z);
 
@@ -251,6 +360,7 @@ export class World {
         for (let i = 0; i < ROCK_COUNT; i++) {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 2)) continue;
             const y = this.getHeightAt(x, z);
             const scale = 0.3 + Math.random() * 0.6;
 
@@ -283,6 +393,7 @@ export class World {
         for (let i = 0; i < BUSH_COUNT; i++) {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 1.5)) continue;
             const y = this.getHeightAt(x, z);
             const scale = 0.3 + Math.random() * 0.4;
 
@@ -319,6 +430,7 @@ export class World {
         for (let i = 0; i < FLOWER_COUNT; i++) {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 1)) continue;
             const y = this.getHeightAt(x, z);
 
             dummy.position.set(x, y + 0.125, z);
@@ -389,6 +501,57 @@ export class World {
 
     getHeightAt(x, z) {
         return this.generateHeight(x, z);
+    }
+
+    normalizeRoadProgress(progress) {
+        let normalized = progress % 1;
+        if (normalized < 0) normalized += 1;
+        return normalized;
+    }
+
+    getRoadSpan(startProgress, finishProgress) {
+        const start = this.normalizeRoadProgress(startProgress);
+        const finish = this.normalizeRoadProgress(finishProgress);
+        let span = finish - start;
+        if (span <= 0) span += 1;
+        return span;
+    }
+
+    getRoadPoint(progress) {
+        const normalized = this.normalizeRoadProgress(progress);
+        const position = this.roadCurve.getPointAt(normalized);
+        const tangent = this.roadCurve.getTangentAt(normalized).setY(0).normalize();
+        position.y = this.getHeightAt(position.x, position.z);
+        return { position, tangent };
+    }
+
+    getRoadRoutePoints(startProgress, finishProgress, count = 24) {
+        const span = this.getRoadSpan(startProgress, finishProgress);
+        const points = [];
+        for (let index = 0; index < count; index++) {
+            const t = count === 1 ? 0.5 : index / (count - 1);
+            points.push(this.getRoadPoint(startProgress + span * t));
+        }
+        return points;
+    }
+
+    getRoadPreviewPoints(count = 48) {
+        return this.getRoadRoutePoints(0, 1, count).map(({ position }) => position);
+    }
+
+    isNearRoad(x, z, padding = 0) {
+        const threshold = ROAD_WIDTH / 2 + padding;
+        const thresholdSq = threshold * threshold;
+
+        for (const point of this.roadSamples) {
+            const dx = x - point.x;
+            const dz = z - point.z;
+            if (dx * dx + dz * dz <= thresholdSq) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     checkCollision(position, radius) {

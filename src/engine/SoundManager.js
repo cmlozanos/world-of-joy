@@ -209,6 +209,18 @@ export class SoundManager {
         setTimeout(() => this.playNote(880, 0.2, 'triangle', 0.08), 100);
     }
 
+    playFuelCollect() {
+        this.playNote(220, 0.08, 'triangle', 0.12);
+        setTimeout(() => this.playNote(330, 0.08, 'triangle', 0.12), 45);
+        setTimeout(() => this.playNote(440, 0.14, 'triangle', 0.1), 90);
+    }
+
+    playNitroCollect() {
+        this.playNote(660, 0.07, 'square', 0.1);
+        setTimeout(() => this.playNote(880, 0.07, 'square', 0.1), 35);
+        setTimeout(() => this.playNote(1320, 0.18, 'sawtooth', 0.08), 70);
+    }
+
     playFootstep(isRunning) {
         const freq = 80 + Math.random() * 30;
         const vol = isRunning ? 0.04 : 0.025;
@@ -311,5 +323,18 @@ export class SoundManager {
         osc.stop(this.ctx.currentTime + 0.25);
 
         setTimeout(() => this.playNote(1000, 0.15, 'triangle', 0.08), 80);
+    }
+
+    playFinish() {
+        this.playNote(523, 0.1, 'triangle', 0.12);
+        setTimeout(() => this.playNote(659, 0.1, 'triangle', 0.12), 60);
+        setTimeout(() => this.playNote(784, 0.1, 'triangle', 0.1), 120);
+        setTimeout(() => this.playNote(1047, 0.24, 'sine', 0.08), 180);
+    }
+
+    playOutOfFuel() {
+        this.playNote(220, 0.14, 'triangle', 0.1);
+        setTimeout(() => this.playNote(165, 0.16, 'triangle', 0.08), 90);
+        setTimeout(() => this.playNote(110, 0.2, 'triangle', 0.06), 180);
     }
 }

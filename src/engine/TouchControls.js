@@ -56,6 +56,7 @@ export class TouchControls {
         this.container.appendChild(this.buttonsArea);
 
         document.getElementById('game-container').appendChild(this.container);
+        this.setButtons();
     }
 
     bindEvents() {
@@ -188,6 +189,31 @@ export class TouchControls {
             if (touchList[i].identifier === id) return touchList[i];
         }
         return null;
+    }
+
+    setButtons({
+        showJump = true,
+        showRun = true,
+        jumpLabel = 'Saltar',
+        runLabel = 'Correr',
+    } = {}) {
+        this.jumpBtn.textContent = jumpLabel;
+        this.runBtn.textContent = runLabel;
+        this.jumpBtn.style.display = showJump ? 'flex' : 'none';
+        this.runBtn.style.display = showRun ? 'flex' : 'none';
+        this.buttonsArea.style.display = showJump || showRun ? 'flex' : 'none';
+
+        if (!showJump) {
+            this.jumpTouchId = null;
+            this.input.keys.Space = false;
+            this.jumpBtn.classList.remove('active');
+        }
+
+        if (!showRun) {
+            this.runTouchId = null;
+            this.input.keys.ShiftLeft = false;
+            this.runBtn.classList.remove('active');
+        }
     }
 
     show() {

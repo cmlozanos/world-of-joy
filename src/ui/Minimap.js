@@ -9,11 +9,38 @@ export class Minimap {
     }
 
     update(character, fruitManager, waterBottleManager, worldBounds, extraMarkers = []) {
+        const markerGroups = [
+            {
+                positions: fruitManager.fruits
+                    .filter((fruit) => !fruit.collected)
+                    .map((fruit) => fruit.group.position),
+                color: '#ffd700',
+                size: 3,
+            },
+            {
+                positions: waterBottleManager.bottles
+                    .filter((bottle) => !bottle.collected)
+                    .map((bottle) => bottle.group.position),
+                color: '#4fc3f7',
+                size: 3,
+            },
+            ...extraMarkers,
+        ];
+
+        this.render(character, worldBounds, markerGroups);
+    }
+
+    updateCustom(character, worldBounds, markerGroups = [], routePoints = []) {
+        this.render(character, worldBounds, markerGroups, routePoints);
+    }
+
+    render(character, worldBounds, markerGroups = [], routePoints = []) {
         const ctx = this.ctx;
         const size = this.size;
         const half = size / 2;
         const charPos = character.getPosition();
-        const scale = size / (this.range * 2);
+        const mapRange = Math.min(this.range, worldBounds || this.range);
+        const scale = size / (mapRange * 2);
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.beginPath();
@@ -25,35 +52,24 @@ export class Minimap {
         ctx.arc(half, half, half - 2, 0, Math.PI * 2);
         ctx.clip();
 
-        ctx.fillStyle = '#ffd700';
-        for (const fruit of fruitManager.fruits) {
-            if (fruit.collected) continue;
-            const dx = fruit.group.position.x - charPos.x;
-            const dz = fruit.group.position.z - charPos.z;
-            const px = half + dx * scale;
-            const py = half - dz * scale;
-            if (this.inRadius(px, py, half)) {
-                ctx.beginPath();
-                ctx.arc(px, py, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
+        if (routePoints.length > 1) {
+            ctx.strokeStyle = 'rgba(220, 220, 220, 0.45)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+
+            routePoints.forEach((point, index) => {
+                const dx = point.x - charPos.x;
+                const dz = point.z - charPos.z;
+                const px = half + dx * scale;
+                const py = half - dz * scale;
+                if (index === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            });
+
+            ctx.stroke();
         }
 
-        ctx.fillStyle = '#4fc3f7';
-        for (const bottle of waterBottleManager.bottles) {
-            if (bottle.collected) continue;
-            const dx = bottle.group.position.x - charPos.x;
-            const dz = bottle.group.position.z - charPos.z;
-            const px = half + dx * scale;
-            const py = half - dz * scale;
-            if (this.inRadius(px, py, half)) {
-                ctx.beginPath();
-                ctx.arc(px, py, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        for (const { positions, color, size: dotSize } of extraMarkers) {
+        for (const { positions, color, size: dotSize } of markerGroups) {
             ctx.fillStyle = color;
             for (const pos of positions) {
                 const dx = pos.x - charPos.x;

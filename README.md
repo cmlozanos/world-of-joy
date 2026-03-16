@@ -1,6 +1,6 @@
-# World of Joy - Fruit Collector 🌳
+# World of Joy 🌳
 
-A 3D open-world fruit collection game built with Three.js, running entirely in the browser.
+A 3D browser game built with Three.js featuring three modes: open-world exploration, word building, and road racing.
 
 ## Getting Started
 
@@ -39,9 +39,15 @@ make stop
 | **Space** | Jump |
 | **Mouse** | Look around |
 
+### Modes
+
+- `Explorador`: complete 8 timed rounds collecting fruits and other objects in the open world.
+- `Palabras`: form words by collecting letters in order inside a room.
+- `Racing`: drive a car along the road, collect fuel and nitro, and reach the finish line.
+
 ### Objective
 
-Complete 8 timed rounds with different missions and visual themes!
+Complete missions with different visual themes and gameplay styles.
 
 | Round | Theme | Mission |
 |-------|-------|--------|
@@ -65,10 +71,12 @@ world-of-joy/
 ├── README.md               # This file
 └── src/
     ├── main.js             # Game initialization and loop
+    ├── RacingGame.js       # Road racing mode
     ├── engine/
     │   ├── InputManager.js       # Keyboard input handling
     │   ├── MusicManager.js       # Procedural background music
     │   ├── ParticleSystem.js     # Particle effects (dust, sparkles)
+    │   ├── RacingRoundManager.js # Racing mode progression and fail states
     │   ├── RoundManager.js       # Round progression and mission logic
     │   ├── ScenarioTheme.js      # Visual themes per round
     │   ├── SoundManager.js       # Sound effects via Web Audio API
@@ -76,8 +84,12 @@ world-of-joy/
     │   └── TouchControls.js      # Mobile virtual joystick and buttons
     ├── entities/
     │   ├── Character.js          # Player character model and animations
+    │   ├── FuelCanManager.js     # Fuel pickup spawning on the road
     │   ├── FruitManager.js       # Fruit spawning, animation, and collection
     │   ├── GemManager.js         # Hidden gems scattered in the world
+    │   ├── NitroCanManager.js    # Nitro boost pickups for racing mode
+    │   ├── RaceMarkerManager.js  # Start and finish gates
+    │   ├── RacingCar.js          # Car model and driving logic
     │   ├── ShootingStarManager.js # Falling stars with limited time to catch
     │   ├── SkyRingManager.js     # Floating rings to pass through
     │   ├── TrampolineManager.js  # Bounce pad spawning and physics
@@ -97,8 +109,8 @@ world-of-joy/
 
 - **Rendering**: Three.js (v0.160.0) loaded via CDN import maps
 - **Character**: Procedurally built low-poly child model with walk/run/idle/jump animations
-- **World**: Procedurally generated terrain with height variation, trees, rocks, bushes, flowers, and clouds
+- **World**: Procedurally generated terrain with height variation, trees, rocks, bushes, flowers, clouds, and a looping road
 - **Camera**: Smooth third-person follow camera with mouse-controlled orbit
 - **Physics**: Simple gravity, ground collision, and tree collision detection
-- **Rounds**: 8 timed missions with unique visual themes (sky, fog, lighting)
+- **Rounds**: Explorer missions, word rounds, and road races with unique visual themes
 - **Mobile**: Touch controls with virtual joystick and action buttons

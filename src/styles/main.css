@@ -231,6 +231,11 @@ body {
     color: #fff;
 }
 
+#racing-mode-button {
+    background: linear-gradient(135deg, #2f3c4a, #ff8c42);
+    color: #fff;
+}
+
 .mode-icon {
     font-size: 48px;
     margin-bottom: 8px;

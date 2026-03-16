@@ -313,6 +313,10 @@ export class Character {
         return this.group.position.clone();
     }
 
+    getRotationY() {
+        return this.rotationY;
+    }
+
     applySpeedBoost(duration, multiplier) {
         this.speedMultiplier = multiplier;
         this.boostTimeRemaining = duration;

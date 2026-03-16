@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export class ThirdPersonCamera {
-    constructor(camera, character) {
+    constructor(camera, character, options = {}) {
         this.camera = camera;
         this.character = character;
         this.yaw = 0;
@@ -9,30 +9,46 @@ export class ThirdPersonCamera {
         this.currentLookAt = new THREE.Vector3();
         this.smoothedY = 0;
         this.initialized = false;
+        this.followTargetRotation = !!options.followTargetRotation;
 
         // Tunable parameters
-        this.offsetX = 0;
-        this.offsetY = 1.8;
-        this.offsetZ = -7.6;
-        this.lookAtX = 0;
-        this.lookAtY = 0.8;
-        this.lookAtZ = 0;
-        this.pitch = 0.2;
-        this.smoothing = 8;
-        this.ySmoothing = 1.5;
-        this.feetScreenOffset = 150; // pixels from bottom of screen
+        this.offsetX = options.offsetX ?? 0;
+        this.offsetY = options.offsetY ?? 1.8;
+        this.offsetZ = options.offsetZ ?? -7.6;
+        this.lookAtX = options.lookAtX ?? 0;
+        this.lookAtY = options.lookAtY ?? 0.8;
+        this.lookAtZ = options.lookAtZ ?? 0;
+        this.pitch = options.pitch ?? 0.2;
+        this.smoothing = options.smoothing ?? 8;
+        this.ySmoothing = options.ySmoothing ?? 1.5;
+        this.feetScreenOffset = options.feetScreenOffset ?? 150; // pixels from bottom of screen
 
         // Jump zoom-out
-        this.jumpExtraZ = -3.5;   // how much further back when airborne
-        this.jumpExtraY = 1.5;    // how much higher when airborne
-        this.jumpExtraPitch = 0.15; // extra pitch (look down) when airborne
-        this.jumpTransitionSpeed = 3; // transition speed
-        this.currentJumpFactor = 0;   // 0 = grounded, 1 = full jump offset
+        this.jumpExtraZ = options.jumpExtraZ ?? -3.5; // how much further back when airborne
+        this.jumpExtraY = options.jumpExtraY ?? 1.5; // how much higher when airborne
+        this.jumpExtraPitch = options.jumpExtraPitch ?? 0.15; // extra pitch (look down) when airborne
+        this.jumpTransitionSpeed = options.jumpTransitionSpeed ?? 3; // transition speed
+        this.currentJumpFactor = 0; // 0 = grounded, 1 = full jump offset
 
         // Debug panel
         this.debugEnabled = false;
         this.debugPanel = null;
         this._initDebugControls();
+    }
+
+    getTargetRotationY() {
+        if (typeof this.character.getRotationY === 'function') {
+            return this.character.getRotationY();
+        }
+        if (typeof this.character.rotationY === 'number') {
+            return this.character.rotationY;
+        }
+        return this.character.group.rotation.y;
+    }
+
+    interpolateAngle(current, target, amount) {
+        const delta = Math.atan2(Math.sin(target - current), Math.cos(target - current));
+        return current + delta * amount;
     }
 
     _initDebugControls() {
@@ -145,7 +161,7 @@ export class ThirdPersonCamera {
     }
 
     reset() {
-        this.yaw = 0;
+        this.yaw = this.followTargetRotation ? this.getTargetRotationY() : 0;
 
         // Immediately position camera at correct location
         const characterPosition = this.character.getPosition();
@@ -181,7 +197,12 @@ export class ThirdPersonCamera {
     }
 
     update(delta, input) {
-        this.yaw += input.getTurnAmount(delta);
+        if (this.followTargetRotation) {
+            const rotationLerp = 1 - Math.exp(-this.smoothing * delta);
+            this.yaw = this.interpolateAngle(this.yaw, this.getTargetRotationY(), rotationLerp);
+        } else {
+            this.yaw += input.getTurnAmount(delta);
+        }
 
         const characterPosition = this.character.getPosition();
         const isAirborne = !this.character.isGrounded;
@@ -237,6 +258,8 @@ export class ThirdPersonCamera {
         this.camera.lookAt(this.currentLookAt);
         this.updateViewOffset();
 
-        this.character.setRotationY(this.yaw);
+        if (!this.followTargetRotation) {
+            this.character.setRotationY(this.yaw);
+        }
     }
 }

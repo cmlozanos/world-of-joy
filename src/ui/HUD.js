@@ -3,8 +3,11 @@ export class HUD {
         this.collectedEl = document.getElementById('fruit-collected');
         this.remainingEl = document.getElementById('fruit-remaining');
         this.counterEl = document.getElementById('fruit-counter');
+        this.counterIconEl = document.getElementById('fruit-icon');
+        this.counterSeparatorEl = this.counterEl.querySelector('.fruit-separator');
         this.instructionsEl = document.getElementById('instructions');
         this.boostBarContainer = document.getElementById('boost-bar-container');
+        this.boostIcon = document.getElementById('boost-icon');
         this.boostBar = document.getElementById('boost-bar');
         this.messageContainer = document.getElementById('message-container');
         this.compassLabel = document.getElementById('compass-label');
@@ -29,6 +32,8 @@ export class HUD {
         this.timeBonusText = document.getElementById('time-bonus-text');
 
         this.timeUpScreen = document.getElementById('time-up-screen');
+        this.failureEmojiEl = document.getElementById('failure-emoji');
+        this.failureTitleEl = document.getElementById('failure-title');
         this.timeUpText = document.getElementById('time-up-text');
 
         this.briefingMissionHint = document.getElementById('briefing-mission-hint');
@@ -92,15 +97,45 @@ export class HUD {
             '¡Por el aro! ¡Acrobacia aérea! \u{1F3C5}',
             '¡Ring completado! ¡Espectacular! \u26A1',
         ];
+
+        this.fuelMessages = [
+            '¡Depósito lleno! ¡Sigue conduciendo! \u26FD',
+            '¡Gasolina recogida! ¡Todavía queda carretera! \u{1F6E3}\uFE0F',
+            '¡Buen repostaje! El coche puede seguir. \u{1F697}',
+            '¡Combustible extra! ¡No te detengas ahora! \u2728',
+        ];
+
+        this.nitroMessages = [
+            '¡Nitro activado! \u26A1',
+            '¡Velocidad máxima! \u{1F4A8}',
+            '¡Turbo naranja! \u{1F525}',
+            '¡Empuje salvaje! \u{1F680}',
+        ];
+
+        this.finishMessages = [
+            '¡Meta cruzada! \u{1F3C1}',
+            '¡Carrera completada! \u{1F3C6}',
+            '¡Llegaste a la meta! \u2728',
+        ];
     }
 
     setTotalFruits(total) {
         this.remainingEl.textContent = total;
     }
 
-    updateScore(collected, remaining) {
-        this.collectedEl.textContent = collected;
-        this.remainingEl.textContent = remaining;
+    setCounterIcon(icon) {
+        if (this.counterIconEl) {
+            this.counterIconEl.textContent = icon;
+        }
+    }
+
+    updateCounter(primary, secondary, animate = false) {
+        this.collectedEl.textContent = primary;
+        this.remainingEl.textContent = secondary;
+        if (this.counterSeparatorEl) this.counterSeparatorEl.style.display = 'inline';
+        this.remainingEl.style.display = 'inline';
+
+        if (!animate) return;
 
         this.counterEl.style.transform = 'scale(1.2)';
         setTimeout(() => {
@@ -108,10 +143,32 @@ export class HUD {
         }, 150);
     }
 
-    updateBoost(timeRemaining) {
+    setInstructions(lines) {
+        if (!this.instructionsEl) return;
+        this.instructionsEl.innerHTML = lines.map((line) => `<p>${line}</p>`).join('');
+    }
+
+    setBoostTheme({
+        icon = '💧',
+        startColor = '#0288d1',
+        endColor = '#4fc3f7',
+        borderColor = 'rgba(79, 195, 247, 0.4)',
+        maxDuration = 6,
+    }) {
+        if (this.boostIcon) this.boostIcon.textContent = icon;
+        this.boostBar.style.background = `linear-gradient(90deg, ${startColor}, ${endColor})`;
+        this.boostBarContainer.style.borderColor = borderColor;
+        this.maxBoostDuration = maxDuration;
+    }
+
+    updateScore(collected, remaining) {
+        this.updateCounter(collected, remaining, true);
+    }
+
+    updateBoost(timeRemaining, maxDuration = this.maxBoostDuration) {
         if (timeRemaining > 0) {
             this.boostBarContainer.style.display = 'flex';
-            const percent = (timeRemaining / this.maxBoostDuration) * 100;
+            const percent = (timeRemaining / Math.max(0.001, maxDuration)) * 100;
             this.boostBar.style.width = `${percent}%`;
         } else {
             this.boostBarContainer.style.display = 'none';
@@ -162,6 +219,21 @@ export class HUD {
 
     showRingMessage() {
         const msg = this.ringMessages[Math.floor(Math.random() * this.ringMessages.length)];
+        this.queueMessage(msg);
+    }
+
+    showFuelMessage() {
+        const msg = this.fuelMessages[Math.floor(Math.random() * this.fuelMessages.length)];
+        this.queueMessage(msg);
+    }
+
+    showNitroMessage() {
+        const msg = this.nitroMessages[Math.floor(Math.random() * this.nitroMessages.length)];
+        this.queueMessage(msg);
+    }
+
+    showFinishMessage() {
+        const msg = this.finishMessages[Math.floor(Math.random() * this.finishMessages.length)];
         this.queueMessage(msg);
     }
 
@@ -278,17 +350,23 @@ export class HUD {
     }
 
     showTimeUp(progress, target) {
+        this.showFailure('¡Se acabó el tiempo!', `Conseguiste ${progress} de ${target}`, '⏰');
+    }
+
+    showFailure(title, text, emoji = '⏰') {
         this.hideAllOverlays();
         this.roundBar.style.display = 'none';
-        this.timeUpText.textContent = `Conseguiste ${progress} de ${target}`;
+        if (this.failureTitleEl) this.failureTitleEl.textContent = title;
+        if (this.failureEmojiEl) this.failureEmojiEl.textContent = emoji;
+        this.timeUpText.textContent = text;
         this.timeUpScreen.style.display = 'flex';
     }
 
-    showVictory(totalStars, maxStars, totalScore) {
+    showVictory(totalStars, maxStars, totalScore, scoreLabel = 'Total recolectado') {
         this.hideAllOverlays();
         this.roundBar.style.display = 'none';
         this.victoryStars.textContent = `${totalStars} / ${maxStars} \u2B50`;
-        this.victoryScoreText.textContent = `Total recolectado: ${totalScore}`;
+        this.victoryScoreText.textContent = `${scoreLabel}: ${totalScore}`;
         this.victoryScreen.style.display = 'flex';
     }
 

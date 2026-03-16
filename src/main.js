@@ -21,6 +21,7 @@ import { MusicManager } from './engine/MusicManager.js';
 import { TouchControls } from './engine/TouchControls.js';
 
 import { WordGame } from './WordGame.js?v=20260314';
+import { RacingGame } from './RacingGame.js?v=20260316';
 
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
@@ -133,28 +134,33 @@ class Game {
             this.startGame();
         });
 
-        document.getElementById('next-round-btn').addEventListener('click', () => {
+        this.bindHudHandlers();
+    }
+
+    bindHudHandlers() {
+        document.getElementById('next-round-btn').onclick = () => {
             if (!this.music.isPlaying) this.music.start();
             this.roundManager.startNextRound();
-        });
+        };
 
-        document.getElementById('retry-btn').addEventListener('click', () => {
+        document.getElementById('retry-btn').onclick = () => {
             this.roundManager.retryRound();
             this.music.start();
-        });
+        };
 
-        document.getElementById('finish-btn').addEventListener('click', () => {
+        document.getElementById('finish-btn').onclick = () => {
             this.goToStartScreen();
-        });
+        };
 
-        document.getElementById('play-again-btn').addEventListener('click', () => {
+        document.getElementById('play-again-btn').onclick = () => {
             this.roundManager.restart();
             this.music.start();
             this.roundManager.startNextRound();
-        });
+        };
     }
 
     startGame() {
+        this.bindHudHandlers();
         document.getElementById('start-screen').style.display = 'none';
 
         if (this.worldGenerated) {
@@ -213,6 +219,18 @@ class Game {
             case ROUND_STATE.BRIEFING:
                 this.setupRound(round);
                 this.scenarioTheme.apply(round.theme, this.scene, this.lights);
+                this.hud.setCounterIcon('🍎');
+                this.hud.setBoostTheme({
+                    icon: '💧',
+                    startColor: '#0288d1',
+                    endColor: '#4fc3f7',
+                    borderColor: 'rgba(79, 195, 247, 0.4)',
+                    maxDuration: 6,
+                });
+                this.hud.setInstructions([
+                    'W/↑ - Avanzar | S/↓ - Retroceder | A/← D/→ - Girar',
+                    'SHIFT - Correr | ESPACIO - Saltar',
+                ]);
                 this.hud.showBriefing(round, totalRounds, hint);
                 this.hud.setCompassLabel(COMPASS_LABELS[round.mission]);
                 if (this.touchControls) this.touchControls.hide();
@@ -542,6 +560,7 @@ class Game {
 
 const game = new Game();
 let wordGame = null;
+let racingGame = null;
 
 function showStartScreen() {
     document.getElementById('start-screen').style.display = 'flex';
@@ -551,8 +570,18 @@ function showStartScreen() {
 
 document.getElementById('word-mode-button').addEventListener('click', () => {
     game.isRunning = false;
+    if (racingGame) racingGame.stop();
     if (!wordGame) {
         wordGame = new WordGame(() => showStartScreen(), game.renderer);
     }
     wordGame.start();
+});
+
+document.getElementById('racing-mode-button').addEventListener('click', () => {
+    game.isRunning = false;
+    if (wordGame) wordGame.stop();
+    if (!racingGame) {
+        racingGame = new RacingGame(() => showStartScreen(), game.renderer);
+    }
+    racingGame.start();
 });

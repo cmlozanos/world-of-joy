@@ -13,9 +13,9 @@
     <meta name="apple-mobile-web-app-title" content="World of Joy">
     <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
     <link rel="apple-touch-icon" href="icons/icon-192.svg">
-    <meta name="description" content="¡Explora el mundo abierto, recoge frutas y forma palabras!">
+    <meta name="description" content="¡Explora el mundo abierto, forma palabras y conduce por carretera en el modo racing!">
 
-    <link rel="stylesheet" href="src/styles/main.css?v=20260308">
+    <link rel="stylesheet" href="src/styles/main.css?v=20260316">
 </head>
 <body>
     <div id="game-container">
@@ -81,8 +81,8 @@
 
             <div id="time-up-screen" class="round-overlay">
                 <div class="round-overlay-content">
-                    <span class="time-up-emoji">⏰</span>
-                    <h1>¡Se acabó el tiempo!</h1>
+                    <span id="failure-emoji" class="time-up-emoji">⏰</span>
+                    <h1 id="failure-title">¡Se acabó el tiempo!</h1>
                     <p id="time-up-text"></p>
                     <div class="time-up-buttons">
                         <button id="retry-btn" class="round-btn">🔄 Reintentar</button>
@@ -158,6 +158,11 @@
                     <span class="mode-title">Palabras</span>
                     <span class="mode-desc">Forma palabras recogiendo letras</span>
                 </button>
+                <button id="racing-mode-button" class="mode-btn">
+                    <span class="mode-icon">🏎️</span>
+                    <span class="mode-title">Racing</span>
+                    <span class="mode-desc">Sigue la carretera, reposta y llega a la meta</span>
+                </button>
             </div>
         </div>
         <div id="loading-screen">
@@ -176,7 +181,7 @@
         }
     }
     </script>
-    <script type="module" src="src/main.js?v=20260314"></script>
+    <script type="module" src="src/main.js?v=20260316"></script>
     <script>
         const isLocalDevHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
