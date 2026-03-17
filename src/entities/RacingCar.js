@@ -184,11 +184,13 @@ export class RacingCar {
             this.speed = moveToward(this.speed, 0, COAST_DECELERATION * coastFactor * delta);
         }
 
-        const steerInput = (input.turnLeft ? 1 : 0) - (input.turnRight ? 1 : 0);
+        const steerInput = typeof input.getTurnAxis === 'function'
+            ? input.getTurnAxis()
+            : (input.turnLeft ? 1 : 0) - (input.turnRight ? 1 : 0);
         const maxForwardSpeed = MAX_FORWARD_SPEED * this.speedMultiplier;
         const speedRatio = THREE.MathUtils.clamp(Math.abs(this.speed) / Math.max(1, maxForwardSpeed), 0, 1);
 
-        if (steerInput !== 0 && Math.abs(this.speed) > 0.5) {
+        if (Math.abs(steerInput) > 0.01 && Math.abs(this.speed) > 0.5) {
             const turnAmount = TURN_SPEED * delta * (0.35 + speedRatio * 0.95);
             this.rotationY += turnAmount * steerInput * (this.speed >= 0 ? 1 : -1);
             this.group.rotation.y = this.rotationY;
@@ -229,7 +231,10 @@ export class RacingCar {
             wheel.rotation.x -= wheelRotation;
         }
 
-        const steerLean = ((input.turnLeft ? 1 : 0) - (input.turnRight ? 1 : 0)) * 0.05;
+        const steerAxis = typeof input.getTurnAxis === 'function'
+            ? input.getTurnAxis()
+            : (input.turnLeft ? 1 : 0) - (input.turnRight ? 1 : 0);
+        const steerLean = steerAxis * 0.05;
         const targetLean = steerLean * THREE.MathUtils.clamp(Math.abs(this.speed) / MAX_FORWARD_SPEED, 0, 1);
         this.bodyRoot.rotation.z += (targetLean - this.bodyRoot.rotation.z) * Math.min(1, delta * 5);
         this.bodyRoot.position.y = Math.sin(this.animationTime * 10) * Math.min(0.03, Math.abs(this.speed) * 0.0008);

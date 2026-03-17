@@ -1,5 +1,8 @@
 const JOYSTICK_RADIUS = 60;
 const JOYSTICK_DEAD_ZONE = 0.15;
+const JOYSTICK_START_RADIUS = 84;
+const TOUCH_TURN_RESPONSE = 0.55;
+const TOUCH_TURN_CURVE = 1.6;
 
 export class TouchControls {
     constructor(inputManager) {
@@ -79,17 +82,21 @@ export class TouchControls {
         if (this.joystickActive) return;
 
         const touch = e.changedTouches[0];
+        const rect = this.joystickArea.getBoundingClientRect();
+        const baseRect = this.joystickBase.getBoundingClientRect();
+        const centerX = baseRect.left + baseRect.width / 2;
+        const centerY = baseRect.top + baseRect.height / 2;
+        const dx = touch.clientX - centerX;
+        const dy = touch.clientY - centerY;
+
+        if (Math.sqrt(dx * dx + dy * dy) > JOYSTICK_START_RADIUS) return;
+
         this.joystickTouchId = touch.identifier;
         this.joystickActive = true;
-
-        const rect = this.joystickArea.getBoundingClientRect();
-        this.joystickOrigin.x = touch.clientX - rect.left;
-        this.joystickOrigin.y = touch.clientY - rect.top;
-
-        this.joystickBase.style.left = `${this.joystickOrigin.x - JOYSTICK_RADIUS}px`;
-        this.joystickBase.style.top = `${this.joystickOrigin.y - JOYSTICK_RADIUS}px`;
+        this.joystickOrigin.x = centerX - rect.left;
+        this.joystickOrigin.y = centerY - rect.top;
         this.joystickBase.style.opacity = '1';
-        this.joystickKnob.style.transform = 'translate(0, 0)';
+        this.updateJoystickFromTouch(touch, rect);
     }
 
     onJoystickMove(e) {
@@ -100,6 +107,10 @@ export class TouchControls {
         if (!touch) return;
 
         const rect = this.joystickArea.getBoundingClientRect();
+        this.updateJoystickFromTouch(touch, rect);
+    }
+
+    updateJoystickFromTouch(touch, rect) {
         const dx = (touch.clientX - rect.left) - this.joystickOrigin.x;
         const dy = (touch.clientY - rect.top) - this.joystickOrigin.y;
 
@@ -175,8 +186,17 @@ export class TouchControls {
 
         this.input.keys['KeyW'] = this.joystickOffset.y < -JOYSTICK_DEAD_ZONE;
         this.input.keys['KeyS'] = this.joystickOffset.y > JOYSTICK_DEAD_ZONE;
-        this.input.keys['KeyA'] = this.joystickOffset.x < -JOYSTICK_DEAD_ZONE;
-        this.input.keys['KeyD'] = this.joystickOffset.x > JOYSTICK_DEAD_ZONE;
+
+        let turnAxis = 0;
+        if (ax > JOYSTICK_DEAD_ZONE) {
+            const normalized = (ax - JOYSTICK_DEAD_ZONE) / (1 - JOYSTICK_DEAD_ZONE);
+            const curved = normalized ** TOUCH_TURN_CURVE;
+            turnAxis = Math.sign(-this.joystickOffset.x) * curved * TOUCH_TURN_RESPONSE;
+        }
+
+        this.input.setVirtualTurnAxis(turnAxis);
+        this.input.keys['KeyA'] = false;
+        this.input.keys['KeyD'] = false;
 
         // Auto-run when joystick is near full tilt
         const magnitude = Math.sqrt(ax * ax + ay * ay);
@@ -200,15 +220,13 @@ export class TouchControls {
         jumpLabel = 'Saltar',
         runLabel = 'Correr',
     } = {}) {
-        const hasActionButtons = showJump || showRun;
-
         this.jumpBtn.textContent = jumpLabel;
         this.runBtn.textContent = runLabel;
         this.jumpBtn.style.display = showJump ? 'flex' : 'none';
         this.runBtn.style.display = showRun ? 'flex' : 'none';
-        this.buttonsArea.style.display = hasActionButtons ? 'flex' : 'none';
-        this.joystickArea.style.width = hasActionButtons ? '50%' : '100%';
-        this.container.style.justifyContent = hasActionButtons ? 'space-between' : 'flex-start';
+        this.buttonsArea.style.display = showJump || showRun ? 'flex' : 'none';
+        this.joystickArea.style.width = '50%';
+        this.container.style.justifyContent = 'space-between';
 
         if (!showJump) {
             this.jumpTouchId = null;
@@ -233,6 +251,7 @@ export class TouchControls {
         this.input.keys.KeyD = false;
         this.input.keys.Space = false;
         this.input.keys.ShiftLeft = false;
+        this.input.setVirtualTurnAxis(0);
         this.jumpBtn.classList.remove('active');
         this.runBtn.classList.remove('active');
     }

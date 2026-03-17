@@ -3,6 +3,7 @@ const TURN_SPEED = 2.5;
 export class InputManager {
     constructor() {
         this.keys = {};
+        this.virtualTurnAxis = 0;
         this.bindEvents();
     }
 
@@ -28,12 +29,25 @@ export class InputManager {
         return this.isKeyPressed('KeyS') || this.isKeyPressed('ArrowDown');
     }
 
+    getKeyboardTurnAxis() {
+        let turnAxis = 0;
+        if (this.isKeyPressed('KeyA') || this.isKeyPressed('ArrowLeft')) turnAxis += 1;
+        if (this.isKeyPressed('KeyD') || this.isKeyPressed('ArrowRight')) turnAxis -= 1;
+        return turnAxis;
+    }
+
+    getTurnAxis() {
+        const keyboardTurnAxis = this.getKeyboardTurnAxis();
+        if (keyboardTurnAxis !== 0) return keyboardTurnAxis;
+        return this.virtualTurnAxis;
+    }
+
     get turnLeft() {
-        return this.isKeyPressed('KeyA') || this.isKeyPressed('ArrowLeft');
+        return this.getTurnAxis() > 0.15;
     }
 
     get turnRight() {
-        return this.isKeyPressed('KeyD') || this.isKeyPressed('ArrowRight');
+        return this.getTurnAxis() < -0.15;
     }
 
     get run() {
@@ -48,10 +62,11 @@ export class InputManager {
         return this.forward || this.backward;
     }
 
+    setVirtualTurnAxis(value) {
+        this.virtualTurnAxis = Math.max(-1, Math.min(1, value));
+    }
+
     getTurnAmount(delta) {
-        let turn = 0;
-        if (this.turnLeft) turn += TURN_SPEED * delta;
-        if (this.turnRight) turn -= TURN_SPEED * delta;
-        return turn;
+        return this.getTurnAxis() * TURN_SPEED * delta;
     }
 }
