@@ -3,15 +3,28 @@ import { InputManager } from './engine/InputManager.js?v=20260317';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { WordRoundManager, WORD_STATE } from './engine/WordRoundManager.js';
+import { NumberRoundManager, NUMBER_STATE } from './engine/NumberRoundManager.js?v=20260317';
 import { Character } from './entities/Character.js';
-import { LetterManager } from './entities/LetterManager.js';
+import { NumberManager } from './entities/NumberManager.js?v=20260317';
 import { Room } from './world/Room.js';
-import { WordHUD } from './ui/WordHUD.js?v=20260317';
+import { NumberHUD } from './ui/NumberHUD.js?v=20260317';
 import { MusicManager } from './engine/MusicManager.js';
 import { TouchControls } from './engine/TouchControls.js?v=20260317';
 
-export class WordGame {
+const DIGIT_NAMES = {
+    0: 'cero',
+    1: 'uno',
+    2: 'dos',
+    3: 'tres',
+    4: 'cuatro',
+    5: 'cinco',
+    6: 'seis',
+    7: 'siete',
+    8: 'ocho',
+    9: 'nueve',
+};
+
+export class NumberGame {
     constructor(onBack, renderer) {
         this.onBack = onBack;
         this.canvas = document.getElementById('game-canvas');
@@ -28,8 +41,8 @@ export class WordGame {
 
     initScene() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x404060);
-        this.scene.fog = null; // No fog in a room
+        this.scene.background = new THREE.Color(0x243654);
+        this.scene.fog = null;
 
         this.camera = new THREE.PerspectiveCamera(
             60,
@@ -42,11 +55,11 @@ export class WordGame {
     initLighting() {
         this.lights = {};
 
-        this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.6);
+        this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.65);
         this.scene.add(this.lights.ambient);
 
-        this.lights.directional = new THREE.DirectionalLight(0xffffff, 0.8);
-        this.lights.directional.position.set(10, 20, 10);
+        this.lights.directional = new THREE.DirectionalLight(0xffffff, 0.85);
+        this.lights.directional.position.set(12, 20, 10);
         this.lights.directional.castShadow = true;
         this.lights.directional.shadow.mapSize.width = 1024;
         this.lights.directional.shadow.mapSize.height = 1024;
@@ -59,12 +72,11 @@ export class WordGame {
         this.scene.add(this.lights.directional);
         this.scene.add(this.lights.directional.target);
 
-        // Colorful point lights for atmosphere in larger room
-        const colors = [0xff6688, 0x66aaff, 0x88ff66, 0xffcc44, 0xff66cc, 0x66ffdd];
-        for (let i = 0; i < 8; i++) {
-            const light = new THREE.PointLight(colors[i % colors.length], 0.5, 50);
-            const angle = (i / 8) * Math.PI * 2;
-            light.position.set(Math.cos(angle) * 25, 5, Math.sin(angle) * 25);
+        const colors = [0xff8fab, 0x72ddf7, 0x95f9c3, 0xffd166, 0xcdb4ff, 0xa0c4ff];
+        for (let index = 0; index < 8; index++) {
+            const light = new THREE.PointLight(colors[index % colors.length], 0.55, 52);
+            const angle = (index / 8) * Math.PI * 2;
+            light.position.set(Math.cos(angle) * 26, 5, Math.sin(angle) * 26);
             this.scene.add(light);
         }
     }
@@ -74,63 +86,61 @@ export class WordGame {
         this.sound = new SoundManager();
         this.room = new Room(this.scene);
         this.character = new Character(this.scene);
-        this.letterManager = new LetterManager(this.scene);
+        this.numberManager = new NumberManager(this.scene);
         this.particles = new ParticleSystem(this.scene);
         this.cameraController = new ThirdPersonCamera(this.camera, this.character);
-        this.hud = new WordHUD();
-        if (typeof this.hud.setReplayHandler === 'function') {
-            this.hud.setReplayHandler((word) => {
-                this.sound.speakWord(word, { interrupt: true });
-            });
-        } else {
-            console.warn('WordHUD replay support unavailable; reloading fresh modules may be required.');
-        }
+        this.hud = new NumberHUD();
+        this.hud.setReplayHandler((speech) => {
+            this.sound.speakText(speech, { interrupt: true, rate: 0.55 });
+        });
         this.music = new MusicManager();
-        this.roundManager = new WordRoundManager();
+        this.roundManager = new NumberRoundManager();
         this.touchControls = TouchControls.isTouchDevice() ? new TouchControls(this.input) : null;
         this.footstepTimer = 0;
         this.lastJumpCount = 0;
-        this.previousState = WORD_STATE.IDLE;
+        this.previousState = NUMBER_STATE.IDLE;
+
+        if (this.touchControls) {
+            this.touchControls.setButtons({ showJump: true, showRun: false, jumpLabel: 'Saltar' });
+        }
     }
 
     bindEvents() {
         this._resizeHandler = () => this.onResize();
         window.addEventListener('resize', this._resizeHandler);
 
-        const nextRoundButton = document.getElementById('word-next-round-btn');
+        const nextRoundButton = document.getElementById('number-next-round-btn');
         if (nextRoundButton) {
             nextRoundButton.addEventListener('click', () => {
                 this.roundManager.startNextRound();
             });
-        } else {
-            console.warn('Missing #word-next-round-btn button in word mode HUD');
         }
 
-        const playAgainButton = document.getElementById('word-play-again-btn');
+        const playAgainButton = document.getElementById('number-play-again-btn');
         if (playAgainButton) {
             playAgainButton.addEventListener('click', () => {
                 this.roundManager.restart();
                 this.roundManager.startNextRound();
             });
-        } else {
-            console.warn('Missing #word-play-again-btn button in word mode HUD');
         }
 
-        const backButton = document.getElementById('word-back-btn');
+        const backButton = document.getElementById('number-back-btn');
         if (backButton) {
             backButton.addEventListener('click', () => {
                 this.goToMenu();
             });
-        } else {
-            console.warn('Missing #word-back-btn button in word mode HUD');
         }
     }
 
     start() {
         document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('word-hud').style.display = 'none';
         document.getElementById('hud').style.display = 'none';
-        document.getElementById('number-hud').style.display = 'none';
-        document.getElementById('word-hud').style.display = 'block';
+        this.hud.show();
+
+        if (this.touchControls) {
+            this.touchControls.setButtons({ showJump: true, showRun: false, jumpLabel: 'Saltar' });
+        }
 
         if (this.initialized) {
             this.isRunning = true;
@@ -184,30 +194,31 @@ export class WordGame {
         const totalRounds = this.roundManager.getTotalRounds();
 
         switch (newState) {
-            case WORD_STATE.BRIEFING:
+            case NUMBER_STATE.BRIEFING:
                 this.setupRound(round);
                 this.hud.showBriefing(round, totalRounds);
-                this.sound.speakWord(round.word, { interrupt: true });
+                this.sound.speakText(round.speech, { interrupt: true, rate: 0.55 });
                 if (this.touchControls) this.touchControls.hide();
                 break;
 
-            case WORD_STATE.PLAYING:
+            case NUMBER_STATE.PLAYING:
                 this.hud.hideBriefing();
                 this.hud.showGameplayUI(round, totalRounds);
                 if (!this.music.isPlaying) this.music.start();
                 if (this.touchControls) this.touchControls.show();
                 break;
 
-            case WORD_STATE.ROUND_COMPLETE:
+            case NUMBER_STATE.ROUND_COMPLETE:
                 if (this.touchControls) this.touchControls.hide();
                 this.hud.showRoundComplete(
                     this.roundManager.getLastRoundStars(),
-                    this.roundManager.getTargetWord()
+                    this.roundManager.getTargetExpression(),
+                    this.roundManager.getTargetSpeech()
                 );
-                this.sound.speakWord(this.roundManager.getTargetWord());
+                this.sound.speakText(this.roundManager.getTargetSpeech(), { rate: 0.55 });
                 break;
 
-            case WORD_STATE.VICTORY:
+            case NUMBER_STATE.VICTORY:
                 if (this.touchControls) this.touchControls.hide();
                 this.music.stop();
                 this.hud.showVictory(
@@ -227,7 +238,7 @@ export class WordGame {
         this.character.group.position.y = -0.26;
         this.cameraController.reset();
 
-        this.letterManager.spawnLetters(round.word, this.room.getRoomBounds());
+        this.numberManager.spawnNumbers(round.collectSequence, this.room.getRoomBounds());
         this.hud.resetForNewRound();
     }
 
@@ -249,9 +260,9 @@ export class WordGame {
         if (this.roundManager.isPlaying()) {
             this.updateGameplay(delta);
         } else {
-            this.letterManager.animate(delta);
+            this.numberManager.animate(delta);
 
-            if (this.roundManager.state === WORD_STATE.BRIEFING) {
+            if (this.roundManager.state === NUMBER_STATE.BRIEFING) {
                 this.hud.updateBriefingCountdown(this.roundManager.briefingTimer);
                 this.cameraController.update(delta, this.input);
             }
@@ -268,24 +279,22 @@ export class WordGame {
         this.updateJumpSound();
 
         const round = this.roundManager.getCurrentRound();
+        const nextIndex = this.roundManager.collectedNumbers.length;
+        const expectedValue = nextIndex < round.collectSequence.length ? round.collectSequence[nextIndex] : null;
 
-        // Determine the next expected letter
-        const nextIndex = this.roundManager.collectedLetters.length;
-        const expectedChar = nextIndex < round.word.length ? round.word[nextIndex] : null;
-
-        this.letterManager.update(delta, this.character, expectedChar, (letter) => {
-            this.roundManager.addCollectedLetter(letter.char);
-            this.hud.updateWordDisplay(
-                round.word,
-                this.roundManager.collectedLetters
-            );
+        this.numberManager.update(delta, this.character, expectedValue, (token) => {
+            this.roundManager.addCollectedNumber(token.value);
+            this.hud.updateEquationDisplay(round, this.roundManager.collectedNumbers);
             this.hud.showCollectMessage();
             this.sound.playFruitCollect();
-            this.sound.speakLetter(letter.char);
-            this.particles.emitFruitCollect(letter.group.position);
+            this.sound.speakText(DIGIT_NAMES[token.value] || token.value, {
+                interrupt: true,
+                rate: 0.58,
+            });
+            this.particles.emitFruitCollect(token.group.position);
         });
 
-        this.hud.updateWordDisplay(round.word, this.roundManager.collectedLetters);
+        this.hud.updateEquationDisplay(round, this.roundManager.collectedNumbers);
     }
 
     updateFootsteps(delta) {
@@ -321,7 +330,7 @@ export class WordGame {
     dispose() {
         this.stop();
         window.removeEventListener('resize', this._resizeHandler);
-        this.letterManager.reset();
+        this.numberManager.reset();
         this.room.dispose();
     }
 }

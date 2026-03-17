@@ -11,6 +11,7 @@ export class HUD {
         this.boostBar = document.getElementById('boost-bar');
         this.messageContainer = document.getElementById('message-container');
         this.compassLabel = document.getElementById('compass-label');
+        this.lessonChip = document.getElementById('lesson-chip');
 
         // Round UI
         this.roundBar = document.getElementById('round-bar');
@@ -296,7 +297,7 @@ export class HUD {
         this.roundBar.style.display = 'flex';
         this.roundNumberEl.textContent = `Ronda ${round.id}/${totalRounds}`;
         this.missionIconEl.textContent = round.icon;
-        this.missionProgressEl.textContent = `0/${round.target}`;
+        this.missionProgressEl.textContent = `0/${round.target ?? 1}`;
 
         if (hint && this.missionHintBar) {
             this.missionHintBar.textContent = hint;
@@ -341,8 +342,21 @@ export class HUD {
         }
     }
 
+    showLessonChip(icon, text) {
+        if (!this.lessonChip) return;
+        this.lessonChip.textContent = `${icon} ${text}`.trim();
+        this.lessonChip.style.display = 'block';
+    }
+
+    hideLessonChip() {
+        if (!this.lessonChip) return;
+        this.lessonChip.style.display = 'none';
+        this.lessonChip.textContent = '';
+    }
+
     showRoundComplete(stars, timeRemaining) {
         this.hideAllOverlays();
+        this.hideLessonChip();
         this.roundBar.style.display = 'none';
         this.starsDisplay.textContent = '\u2B50'.repeat(stars) + '\u2606'.repeat(3 - stars);
         this.timeBonusText.textContent = `Tiempo restante: ${Math.ceil(timeRemaining)}s`;
@@ -355,6 +369,7 @@ export class HUD {
 
     showFailure(title, text, emoji = '⏰') {
         this.hideAllOverlays();
+        this.hideLessonChip();
         this.roundBar.style.display = 'none';
         if (this.failureTitleEl) this.failureTitleEl.textContent = title;
         if (this.failureEmojiEl) this.failureEmojiEl.textContent = emoji;
@@ -364,6 +379,7 @@ export class HUD {
 
     showVictory(totalStars, maxStars, totalScore, scoreLabel = 'Total recolectado') {
         this.hideAllOverlays();
+        this.hideLessonChip();
         this.roundBar.style.display = 'none';
         this.victoryStars.textContent = `${totalStars} / ${maxStars} \u2B50`;
         this.victoryScoreText.textContent = `${scoreLabel}: ${totalScore}`;

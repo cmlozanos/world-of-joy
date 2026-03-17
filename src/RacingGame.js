@@ -1,20 +1,21 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js';
+import { InputManager } from './engine/InputManager.js?v=20260317';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js';
+import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js?v=20260317';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
 import { World } from './world/World.js';
-import { RacingCar } from './entities/RacingCar.js';
+import { RacingCar } from './entities/RacingCar.js?v=20260317';
 import { FuelCanManager } from './entities/FuelCanManager.js';
 import { NitroCanManager } from './entities/NitroCanManager.js';
 import { RaceMarkerManager } from './entities/RaceMarkerManager.js';
-import { HUD } from './ui/HUD.js';
+import { RoadSignManager } from './entities/RoadSignManager.js?v=20260317';
+import { HUD } from './ui/HUD.js?v=20260317';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js';
+import { TouchControls } from './engine/TouchControls.js?v=20260317';
 
 const CAR_HEIGHT_OFFSET = 0.48;
 const NITRO_DURATION = 4.5;
@@ -32,6 +33,8 @@ export class RacingGame {
         this.routePreviewPoints = [];
         this.previousState = RACE_STATE.IDLE;
         this.didReachFinish = false;
+        this.lessonAnnouncementCooldown = 0;
+        this.lessonDiscoveryCount = 0;
 
         this.initScene();
         this.initLighting();
@@ -84,6 +87,7 @@ export class RacingGame {
         this.fuelCanManager = new FuelCanManager(this.scene);
         this.nitroCanManager = new NitroCanManager(this.scene);
         this.raceMarkerManager = new RaceMarkerManager(this.scene);
+        this.roadSignManager = new RoadSignManager(this.scene);
         this.particles = new ParticleSystem(this.scene);
         this.cameraController = new ThirdPersonCamera(this.camera, this.car, {
             followTargetRotation: true,
@@ -140,6 +144,7 @@ export class RacingGame {
         this.bindHudHandlers();
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('word-hud').style.display = 'none';
+        document.getElementById('number-hud').style.display = 'none';
         document.getElementById('hud').style.display = 'block';
 
         if (this.touchControls) {
@@ -189,7 +194,9 @@ export class RacingGame {
         this.isRunning = false;
         this.music.stop();
         this.sound.stopAmbient();
+        this.sound.cancelSpeech();
         this.hud.hideAllOverlays();
+        this.hud.hideLessonChip();
         this.hud.roundBar.style.display = 'none';
         document.getElementById('hud').style.display = 'none';
         if (this.touchControls) this.touchControls.hide();
@@ -203,6 +210,7 @@ export class RacingGame {
     onStateChanged(newState) {
         const round = this.roundManager.getCurrentRound();
         const totalRounds = this.roundManager.getTotalRounds();
+        const lessonHint = round?.lesson ? `${round.hint} ${round.lesson.coachText}` : round?.hint;
 
         switch (newState) {
             case RACE_STATE.BRIEFING:
@@ -221,13 +229,23 @@ export class RacingGame {
                     'A/← D/→ - Girar | Sigue la carretera hasta la meta',
                 ]);
                 this.hud.setCompassLabel('🏁 Meta');
-                this.hud.showBriefing(round, totalRounds, round.hint);
+                if (round.lesson) this.hud.showLessonChip(round.lesson.icon, round.lesson.title);
+                this.hud.showBriefing(round, totalRounds, lessonHint);
+                if (round.lesson?.coachText) {
+                    this.sound.speakText(round.lesson.coachText, { interrupt: true, rate: 0.82 });
+                }
                 if (this.touchControls) this.touchControls.hide();
                 break;
 
             case RACE_STATE.PLAYING:
                 this.hud.hideBriefing();
-                this.hud.showGameplayUI(round, totalRounds, !!this.touchControls, round.hint);
+                if (round.lesson) this.hud.showLessonChip(round.lesson.icon, round.lesson.title);
+                this.hud.showGameplayUI(
+                    round,
+                    totalRounds,
+                    !!this.touchControls,
+                    round.lesson?.coachText || round.hint
+                );
                 if (!this.music.isPlaying) this.music.start();
                 if (this.touchControls) this.touchControls.show();
                 break;
@@ -275,6 +293,8 @@ export class RacingGame {
 
     setupRound(round) {
         this.didReachFinish = false;
+        this.lessonAnnouncementCooldown = 0;
+        this.lessonDiscoveryCount = 0;
         this.hud.resetForNewRound();
 
         const startInfo = this.world.getRoadPoint(round.startProgress);
@@ -292,6 +312,8 @@ export class RacingGame {
         this.routePreviewPoints = this.world
             .getRoadRoutePoints(round.startProgress, round.finishProgress, 52)
             .map(({ position }) => position);
+
+        this.roadSignManager.spawn(this.buildLessonPlacements(round.startProgress, round.finishProgress, round.lesson));
 
         this.fuelCanManager.spawn(this.buildPlacements(round.startProgress, round.finishProgress, round.fuelCanCount, 2.7));
         this.nitroCanManager.spawn(this.buildPlacements(round.startProgress, round.finishProgress, round.nitroCanCount, 0));
@@ -323,6 +345,33 @@ export class RacingGame {
         return placements;
     }
 
+    buildLessonPlacements(startProgress, finishProgress, lesson) {
+        if (!lesson?.signs?.length) return [];
+
+        const placements = [];
+        const span = this.world.getRoadSpan(startProgress, finishProgress);
+        const count = Math.max(lesson.signs.length * 2, 6);
+
+        for (let index = 0; index < count; index++) {
+            const t = (index + 1) / (count + 1);
+            const roadInfo = this.world.getRoadPoint(startProgress + span * t);
+            const lateral = new THREE.Vector3(-roadInfo.tangent.z, 0, roadInfo.tangent.x).normalize();
+            const side = index % 2 === 0 ? 1 : -1;
+            const position = roadInfo.position.clone().addScaledVector(lateral, 8 * side);
+            position.y = this.world.getHeightAt(position.x, position.z);
+
+            const lookAtRoad = roadInfo.position.clone().sub(position).normalize();
+
+            placements.push({
+                position,
+                rotationY: Math.atan2(lookAtRoad.x, lookAtRoad.z),
+                template: lesson.signs[index % lesson.signs.length],
+            });
+        }
+
+        return placements;
+    }
+
     loop() {
         if (!this.isRunning) return;
         requestAnimationFrame(() => this.loop());
@@ -336,6 +385,9 @@ export class RacingGame {
         }
 
         this.raceMarkerManager.update(delta);
+        if (!this.roundManager.isPlaying()) {
+            this.roadSignManager.update(delta);
+        }
         this.particles.update(delta);
 
         if (this.roundManager.isPlaying()) {
@@ -356,12 +408,23 @@ export class RacingGame {
     }
 
     updateGameplay(delta) {
+        this.lessonAnnouncementCooldown = Math.max(0, this.lessonAnnouncementCooldown - delta);
+
         this.car.update(delta, this.input, this.world);
         this.cameraController.update(delta, this.input);
 
         if (this.car.isMoving()) {
             this.particles.emitRunDust(this.car.getPosition(), this.car.getForwardDirection());
         }
+
+        this.roadSignManager.update(delta, this.car, (sign) => {
+            if (this.lessonDiscoveryCount >= 4 || this.lessonAnnouncementCooldown > 0) return;
+            this.lessonDiscoveryCount += 1;
+            this.lessonAnnouncementCooldown = 3.25;
+            this.hud.queueMessage(`${sign.template.icon} ${sign.template.message}`);
+            this.sound.speakText(sign.template.speech, { interrupt: false, rate: 0.86 });
+            this.particles.emitFruitCollect(sign.group.position);
+        });
 
         this.fuelCanManager.update(delta, this.car, (fuelAmount) => {
             this.car.refuel(fuelAmount);
@@ -384,6 +447,8 @@ export class RacingGame {
             const dz = carPosition.z - finishPosition.z;
             if (Math.sqrt(dx * dx + dz * dz) < FINISH_RADIUS) {
                 this.didReachFinish = true;
+                this.hud.showFinishMessage();
+                this.particles.emitFruitCollect(finishPosition);
                 this.roundManager.markGoalReached();
             }
         }

@@ -13,27 +13,27 @@
     <meta name="apple-mobile-web-app-title" content="World of Joy">
     <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
     <link rel="apple-touch-icon" href="icons/icon-192.svg">
-    <meta name="description" content="¡Explora el mundo abierto, forma palabras y conduce por carretera en el modo racing!">
+    <meta name="description" content="¡Explora el mundo abierto, forma palabras, resuelve operaciones y conduce por carretera en el modo racing!">
 
-    <link rel="stylesheet" href="src/styles/main.css?v=20260316">
+    <link rel="stylesheet" href="src/styles/main.css?v=20260317">
 </head>
 <body>
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
         <div id="hud">
-            <div id="fruit-counter">
+            <div id="fruit-counter" class="hud-card hud-card--compact">
                 <span id="fruit-icon">🍎</span>
                 <span id="fruit-collected">0</span>
                 <span class="fruit-separator">/</span>
                 <span id="fruit-remaining">0</span>
             </div>
-            <div id="boost-bar-container">
+            <div id="boost-bar-container" class="hud-card hud-card--compact">
                 <div id="boost-icon">💧</div>
                 <div id="boost-bar-bg">
                     <div id="boost-bar"></div>
                 </div>
             </div>
-            <div id="round-bar">
+            <div id="round-bar" class="hud-card hud-card--wide">
                 <div id="round-number">Ronda 1/8</div>
                 <div id="timer-container">
                     <div id="timer-bar-bg-round">
@@ -53,15 +53,16 @@
                 <canvas id="compass-canvas"></canvas>
                 <div id="compass-label">🍎 Fruta más cercana</div>
             </div>
-            <div id="instructions">
+            <div id="lesson-chip" class="hud-card hud-card--lesson" style="display:none;"></div>
+            <div id="instructions" class="hud-card hud-card--hint">
                 <p>W/↑ - Avanzar | S/↓ - Retroceder | A/← D/→ - Girar</p>
                 <p>SHIFT - Correr | ESPACIO - Saltar</p>
             </div>
             <div id="message-container"></div>
-            <div id="mission-hint-bar"></div>
+            <div id="mission-hint-bar" class="hud-card hud-card--hint"></div>
 
             <div id="briefing-screen" class="round-overlay">
-                <div class="round-overlay-content">
+                <div class="round-overlay-content overlay-card">
                     <h3 id="briefing-round-num">Ronda 1 / 8</h3>
                     <h1 id="briefing-theme-name">Pradera Matutina</h1>
                     <p id="briefing-mission-text">¡Recoge 8 frutas!</p>
@@ -71,7 +72,7 @@
             </div>
 
             <div id="round-complete-screen" class="round-overlay">
-                <div class="round-overlay-content">
+                <div class="round-overlay-content overlay-card">
                     <h1>¡Ronda Completada!</h1>
                     <div id="stars-display">⭐⭐⭐</div>
                     <p id="time-bonus-text"></p>
@@ -80,7 +81,7 @@
             </div>
 
             <div id="time-up-screen" class="round-overlay">
-                <div class="round-overlay-content">
+                <div class="round-overlay-content overlay-card">
                     <span id="failure-emoji" class="time-up-emoji">⏰</span>
                     <h1 id="failure-title">¡Se acabó el tiempo!</h1>
                     <p id="time-up-text"></p>
@@ -92,7 +93,7 @@
             </div>
 
             <div id="victory-screen" class="round-overlay">
-                <div class="round-overlay-content">
+                <div class="round-overlay-content overlay-card">
                     <h1>🎉 ¡Victoria! 🎉</h1>
                     <div id="victory-stars"></div>
                     <p id="victory-score-text"></p>
@@ -102,17 +103,17 @@
         </div>
         <!-- Word Game HUD -->
         <div id="word-hud" style="display:none;">
-            <div id="word-round-info">Ronda 1/8</div>
-            <div id="word-display-panel">
-                <div id="word-display"></div>
-                <button id="word-replay-btn" class="word-audio-btn" type="button" aria-label="Escuchar la palabra" title="Escuchar la palabra">🔊</button>
+            <div id="word-round-info" class="sequence-round-info ui-card">Ronda 1/8</div>
+            <div id="word-display-panel" class="sequence-display-panel">
+                <div id="word-display" class="sequence-display ui-card"></div>
+                <button id="word-replay-btn" class="word-audio-btn sequence-audio-btn ui-card" type="button" aria-label="Escuchar la palabra" title="Escuchar la palabra">🔊</button>
             </div>
 
-            <div id="word-message-container"></div>
-            <button id="word-back-btn" class="word-back-btn">← Menú</button>
+            <div id="word-message-container" class="sequence-message-container"></div>
+            <button id="word-back-btn" class="word-back-btn sequence-back-btn ui-card">← Menú</button>
 
             <div id="word-briefing-screen" class="round-overlay">
-                <div class="round-overlay-content">
+                <div class="round-overlay-content overlay-card">
                     <h3 id="word-briefing-round">Ronda 1 / 8</h3>
                     <h1>📝 Forma la Palabra</h1>
                     <p id="word-briefing-word">? ? ? ?</p>
@@ -121,12 +122,12 @@
             </div>
 
             <div id="word-complete-screen" class="round-overlay">
-                <div class="round-overlay-content">
+                <div class="round-overlay-content overlay-card">
                     <h1>¡Palabra Completada!</h1>
                     <div id="word-complete-stars">⭐⭐⭐</div>
                     <div id="word-complete-word-row">
                         <p id="word-complete-word"></p>
-                        <button id="word-complete-replay-btn" class="word-audio-btn word-audio-btn-large" type="button" aria-label="Escuchar la palabra de nuevo" title="Escuchar la palabra de nuevo">🔊</button>
+                        <button id="word-complete-replay-btn" class="word-audio-btn word-audio-btn-large sequence-audio-btn ui-card" type="button" aria-label="Escuchar la palabra de nuevo" title="Escuchar la palabra de nuevo">🔊</button>
                     </div>
                     <button id="word-next-round-btn" class="round-btn">Siguiente Ronda</button>
                 </div>
@@ -135,11 +136,53 @@
 
 
             <div id="word-victory-screen" class="round-overlay">
-                <div class="round-overlay-content">
+                <div class="round-overlay-content overlay-card">
                     <h1>🎉 ¡Victoria! 🎉</h1>
                     <div id="word-victory-stars"></div>
                     <p id="word-victory-score"></p>
                     <button id="word-play-again-btn" class="round-btn">Jugar de Nuevo</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="number-hud" style="display:none;">
+            <div id="number-round-info" class="sequence-round-info ui-card">Ronda 1/72</div>
+            <div id="number-display-panel" class="sequence-display-panel">
+                <div id="number-display" class="sequence-display ui-card"></div>
+                <button id="number-replay-btn" class="sequence-audio-btn ui-card" type="button" aria-label="Escuchar la operación" title="Escuchar la operación">🔊</button>
+            </div>
+
+            <div id="number-message-container" class="sequence-message-container"></div>
+            <button id="number-back-btn" class="sequence-back-btn ui-card">← Menú</button>
+
+            <div id="number-briefing-screen" class="round-overlay">
+                <div class="round-overlay-content overlay-card">
+                    <h3 id="number-briefing-round">Ronda 1 / 72</h3>
+                    <h1>🔢 Completa la Operación</h1>
+                    <p id="number-briefing-expression">2 + 2 = 4</p>
+                    <p id="number-briefing-hint">Busca 2, 2 y 4</p>
+                    <div id="number-briefing-countdown">3</div>
+                </div>
+            </div>
+
+            <div id="number-complete-screen" class="round-overlay">
+                <div class="round-overlay-content overlay-card">
+                    <h1>¡Operación Completada!</h1>
+                    <div id="number-complete-stars">⭐⭐⭐</div>
+                    <div id="number-complete-word-row">
+                        <p id="number-complete-expression"></p>
+                        <button id="number-complete-replay-btn" class="sequence-audio-btn sequence-audio-btn-large ui-card" type="button" aria-label="Escuchar la operación de nuevo" title="Escuchar la operación de nuevo">🔊</button>
+                    </div>
+                    <button id="number-next-round-btn" class="round-btn">Siguiente Ronda</button>
+                </div>
+            </div>
+
+            <div id="number-victory-screen" class="round-overlay">
+                <div class="round-overlay-content overlay-card">
+                    <h1>🎉 ¡Victoria! 🎉</h1>
+                    <div id="number-victory-stars"></div>
+                    <p id="number-victory-score"></p>
+                    <button id="number-play-again-btn" class="round-btn">Jugar de Nuevo</button>
                 </div>
             </div>
         </div>
@@ -163,6 +206,11 @@
                     <span class="mode-title">Racing</span>
                     <span class="mode-desc">Sigue la carretera, reposta y llega a la meta</span>
                 </button>
+                <button id="number-mode-button" class="mode-btn">
+                    <span class="mode-icon">🔢</span>
+                    <span class="mode-title">Números</span>
+                    <span class="mode-desc">Resuelve operaciones recogiendo cifras</span>
+                </button>
             </div>
         </div>
         <div id="loading-screen">
@@ -181,7 +229,7 @@
         }
     }
     </script>
-    <script type="module" src="src/main.js?v=20260316"></script>
+    <script type="module" src="src/main.js?v=20260317"></script>
     <script>
         const isLocalDevHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 

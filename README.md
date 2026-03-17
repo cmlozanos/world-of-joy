@@ -1,6 +1,6 @@
 # World of Joy 🌳
 
-A 3D browser game built with Three.js featuring three modes: open-world exploration, word building, and road racing.
+A 3D browser game built with Three.js featuring four modes: open-world exploration, word building, number operations, and road racing.
 
 ## Getting Started
 
@@ -15,7 +15,7 @@ A 3D browser game built with Three.js featuring three modes: open-world explorat
 make serve
 ```
 
-Then open [http://localhost:8080](http://localhost:8080) in your browser.
+Then open [http://localhost:9999](http://localhost:9999) in your browser.
 
 To use a custom port:
 
@@ -43,7 +43,8 @@ make stop
 
 - `Explorador`: complete 8 timed rounds collecting fruits and other objects in the open world.
 - `Palabras`: form words by collecting letters in order inside a room.
-- `Racing`: drive a car along the road, collect fuel and nitro, and reach the finish line.
+- `Números`: complete operations such as `2 + 2 = 4` by collecting the correct digits in order.
+- `Racing`: drive a car along the road, collect fuel and nitro, reach the finish line, and discover educational roadside signs.
 
 ### Objective
 
@@ -71,10 +72,12 @@ world-of-joy/
 ├── README.md               # This file
 └── src/
     ├── main.js             # Game initialization and loop
+    ├── NumberGame.js       # Indoor numbers mode
     ├── RacingGame.js       # Road racing mode
     ├── engine/
     │   ├── InputManager.js       # Keyboard input handling
     │   ├── MusicManager.js       # Procedural background music
+    │   ├── NumberRoundManager.js # Number mode progression and equations
     │   ├── ParticleSystem.js     # Particle effects (dust, sparkles)
     │   ├── RacingRoundManager.js # Racing mode progression and fail states
     │   ├── RoundManager.js       # Round progression and mission logic
@@ -87,9 +90,11 @@ world-of-joy/
     │   ├── FuelCanManager.js     # Fuel pickup spawning on the road
     │   ├── FruitManager.js       # Fruit spawning, animation, and collection
     │   ├── GemManager.js         # Hidden gems scattered in the world
+    │   ├── NumberManager.js      # Number token spawning for operations
     │   ├── NitroCanManager.js    # Nitro boost pickups for racing mode
     │   ├── RaceMarkerManager.js  # Start and finish gates
     │   ├── RacingCar.js          # Car model and driving logic
+    │   ├── RoadSignManager.js    # Educational roadside signs for racing
     │   ├── ShootingStarManager.js # Falling stars with limited time to catch
     │   ├── SkyRingManager.js     # Floating rings to pass through
     │   ├── TrampolineManager.js  # Bounce pad spawning and physics
@@ -98,7 +103,9 @@ world-of-joy/
     ├── ui/
     │   ├── Compass.js      # Directional compass to nearest fruit
     │   ├── HUD.js          # Score display, messages, and popups
-    │   └── Minimap.js      # Minimap overlay
+    │   ├── Minimap.js      # Minimap overlay
+    │   ├── NumberHUD.js    # Number mode overlays and equation display
+    │   └── WordHUD.js      # Word mode overlays and word display
     ├── world/
     │   └── World.js        # Terrain, trees, and environment generation
     └── styles/
@@ -112,5 +119,6 @@ world-of-joy/
 - **World**: Procedurally generated terrain with height variation, trees, rocks, bushes, flowers, clouds, and a looping road
 - **Camera**: Smooth third-person follow camera with mouse-controlled orbit
 - **Physics**: Simple gravity, ground collision, and tree collision detection
-- **Rounds**: Explorer missions, word rounds, and road races with unique visual themes
-- **Mobile**: Touch controls with virtual joystick and action buttons
+- **Rounds**: Explorer missions, word rounds, number operations, and road races with unique visual themes
+- **Learning Layer**: Racing rounds now include colors, shapes, directions, safety signs, counting, and positive vocabulary cues
+- **Mobile**: Touch controls with a fixed virtual joystick, smoother steering, and a shared card-based HUD style across modes

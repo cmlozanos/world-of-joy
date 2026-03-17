@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js';
+import { InputManager } from './engine/InputManager.js?v=20260317';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
@@ -14,14 +14,15 @@ import { TrampolineManager } from './entities/TrampolineManager.js';
 import { GemManager } from './entities/GemManager.js';
 import { ShootingStarManager } from './entities/ShootingStarManager.js';
 import { SkyRingManager } from './entities/SkyRingManager.js';
-import { HUD } from './ui/HUD.js';
+import { HUD } from './ui/HUD.js?v=20260317';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js';
+import { TouchControls } from './engine/TouchControls.js?v=20260317';
 
-import { WordGame } from './WordGame.js?v=20260314';
-import { RacingGame } from './RacingGame.js?v=20260316';
+import { WordGame } from './WordGame.js?v=20260317';
+import { RacingGame } from './RacingGame.js?v=20260317';
+import { NumberGame } from './NumberGame.js?v=20260317';
 
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
@@ -162,6 +163,8 @@ class Game {
     startGame() {
         this.bindHudHandlers();
         document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('word-hud').style.display = 'none';
+        document.getElementById('number-hud').style.display = 'none';
 
         if (this.worldGenerated) {
             document.getElementById('hud').style.display = 'block';
@@ -231,6 +234,7 @@ class Game {
                     'W/↑ - Avanzar | S/↓ - Retroceder | A/← D/→ - Girar',
                     'SHIFT - Correr | ESPACIO - Saltar',
                 ]);
+                this.hud.hideLessonChip();
                 this.hud.showBriefing(round, totalRounds, hint);
                 this.hud.setCompassLabel(COMPASS_LABELS[round.mission]);
                 if (this.touchControls) this.touchControls.hide();
@@ -561,16 +565,19 @@ class Game {
 const game = new Game();
 let wordGame = null;
 let racingGame = null;
+let numberGame = null;
 
 function showStartScreen() {
     document.getElementById('start-screen').style.display = 'flex';
     document.getElementById('hud').style.display = 'none';
     document.getElementById('word-hud').style.display = 'none';
+    document.getElementById('number-hud').style.display = 'none';
 }
 
 document.getElementById('word-mode-button').addEventListener('click', () => {
     game.isRunning = false;
     if (racingGame) racingGame.stop();
+    if (numberGame) numberGame.stop();
     if (!wordGame) {
         wordGame = new WordGame(() => showStartScreen(), game.renderer);
     }
@@ -580,8 +587,19 @@ document.getElementById('word-mode-button').addEventListener('click', () => {
 document.getElementById('racing-mode-button').addEventListener('click', () => {
     game.isRunning = false;
     if (wordGame) wordGame.stop();
+    if (numberGame) numberGame.stop();
     if (!racingGame) {
         racingGame = new RacingGame(() => showStartScreen(), game.renderer);
     }
     racingGame.start();
+});
+
+document.getElementById('number-mode-button').addEventListener('click', () => {
+    game.isRunning = false;
+    if (wordGame) wordGame.stop();
+    if (racingGame) racingGame.stop();
+    if (!numberGame) {
+        numberGame = new NumberGame(() => showStartScreen(), game.renderer);
+    }
+    numberGame.start();
 });
