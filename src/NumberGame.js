@@ -1,15 +1,16 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260317';
+import { InputManager } from './engine/InputManager.js?v=20260317b';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { NumberRoundManager, NUMBER_STATE } from './engine/NumberRoundManager.js?v=20260317';
+import { NumberRoundManager, NUMBER_STATE } from './engine/NumberRoundManager.js?v=20260317b';
 import { Character } from './entities/Character.js';
-import { NumberManager } from './entities/NumberManager.js?v=20260317';
+import { NumberManager } from './entities/NumberManager.js?v=20260317b';
 import { Room } from './world/Room.js';
-import { NumberHUD } from './ui/NumberHUD.js?v=20260317';
+import { NumberHUD } from './ui/NumberHUD.js?v=20260317b';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260317';
+import { TouchControls } from './engine/TouchControls.js?v=20260317b';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260317b';
 
 const DIGIT_NAMES = {
     0: 'cero',
@@ -133,9 +134,14 @@ export class NumberGame {
     }
 
     start() {
+        if (!wellbeingManager.beginActivity('números', () => this.goToMenu())) {
+            return;
+        }
+
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('word-hud').style.display = 'none';
         document.getElementById('hud').style.display = 'none';
+        document.getElementById('number-hud').style.display = 'block';
         this.hud.show();
 
         if (this.touchControls) {
@@ -177,6 +183,7 @@ export class NumberGame {
 
     stop() {
         this.isRunning = false;
+        wellbeingManager.endActivity();
         this.music.stop();
         this.sound.stopAmbient();
         this.sound.cancelSpeech();
@@ -247,6 +254,10 @@ export class NumberGame {
         requestAnimationFrame(() => this.loop());
 
         const delta = Math.min(this.clock.getDelta(), 0.05);
+
+        if (wellbeingManager.tick(delta)) {
+            return;
+        }
 
         this.roundManager.update(delta);
 

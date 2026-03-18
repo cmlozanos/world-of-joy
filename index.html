@@ -15,12 +15,14 @@
     <link rel="apple-touch-icon" href="icons/icon-192.svg">
     <meta name="description" content="¡Explora el mundo abierto, forma palabras, resuelve operaciones y conduce por carretera en el modo racing!">
 
-    <link rel="stylesheet" href="src/styles/main.css?v=20260317">
+    <link rel="stylesheet" href="src/styles/main.css?v=20260317c">
 </head>
 <body>
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
+        <button id="global-home-btn" class="global-home-btn" style="display:none;" type="button" aria-label="Volver al menú" title="Volver al menú">🏠</button>
         <div id="hud">
+            <button id="hud-back-btn" class="sequence-back-btn hud-menu-btn ui-card" type="button" aria-label="Volver al menú" title="Volver al menú">🏠</button>
             <div id="fruit-counter" class="hud-card hud-card--compact">
                 <span id="fruit-icon">🍎</span>
                 <span id="fruit-collected">0</span>
@@ -110,7 +112,7 @@
             </div>
 
             <div id="word-message-container" class="sequence-message-container"></div>
-            <button id="word-back-btn" class="word-back-btn sequence-back-btn ui-card">← Menú</button>
+            <button id="word-back-btn" class="word-back-btn sequence-back-btn ui-card" type="button" aria-label="Volver al menú" title="Volver al menú">🏠</button>
 
             <div id="word-briefing-screen" class="round-overlay">
                 <div class="round-overlay-content overlay-card">
@@ -153,7 +155,7 @@
             </div>
 
             <div id="number-message-container" class="sequence-message-container"></div>
-            <button id="number-back-btn" class="sequence-back-btn ui-card">← Menú</button>
+            <button id="number-back-btn" class="sequence-back-btn ui-card" type="button" aria-label="Volver al menú" title="Volver al menú">🏠</button>
 
             <div id="number-briefing-screen" class="round-overlay">
                 <div class="round-overlay-content overlay-card">
@@ -184,6 +186,17 @@
                     <p id="number-victory-score"></p>
                     <button id="number-play-again-btn" class="round-btn">Jugar de Nuevo</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="wellbeing-chip" class="ui-card" style="display:none;"></div>
+
+        <div id="wellbeing-overlay" class="round-overlay" style="display:none;">
+            <div class="round-overlay-content overlay-card wellbeing-card">
+                <h1 id="wellbeing-title">Momento de descanso</h1>
+                <p id="wellbeing-text">Jugar mejor también significa parar un rato y volver con energía.</p>
+                <div id="wellbeing-countdown">45</div>
+                <p id="wellbeing-tip">Bebe agua, respira y mira a lo lejos.</p>
             </div>
         </div>
 
@@ -229,7 +242,7 @@
         }
     }
     </script>
-    <script type="module" src="src/main.js?v=20260317"></script>
+    <script type="module" src="src/main.js?v=20260317c"></script>
     <script>
         const isLocalDevHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 

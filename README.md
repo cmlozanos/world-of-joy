@@ -46,6 +46,8 @@ make stop
 - `Números`: complete operations such as `2 + 2 = 4` by collecting the correct digits in order.
 - `Racing`: drive a car along the road, collect fuel and nitro, reach the finish line, and discover educational roadside signs.
 
+All gameplay modes include a visible button to return to the main menu.
+
 ### Objective
 
 Complete missions with different visual themes and gameplay styles.
@@ -122,3 +124,5 @@ world-of-joy/
 - **Rounds**: Explorer missions, word rounds, number operations, and road races with unique visual themes
 - **Learning Layer**: Racing rounds now include colors, shapes, directions, safety signs, counting, and positive vocabulary cues
 - **Mobile**: Touch controls with a fixed virtual joystick, smoother steering, and a shared card-based HUD style across modes
+- **Wellbeing**: A gentle reminder appears after several minutes of play, and the app enforces a short break after a longer stretch to reduce compulsive play loops
+- **Racing Focus**: Racing uses a cleaner road-first world profile with fewer distracting decorative elements and no explorer wildlife system

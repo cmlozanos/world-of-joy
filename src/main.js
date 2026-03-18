@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260317';
+import { InputManager } from './engine/InputManager.js?v=20260317c';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
 import { RoundManager, ROUND_STATE, MISSION_TYPE, MISSION_HINTS } from './engine/RoundManager.js';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
 import { Character } from './entities/Character.js';
-import { World } from './world/World.js';
+import { World } from './world/World.js?v=20260317c';
 import { FruitManager } from './entities/FruitManager.js';
 import { WaterBottleManager } from './entities/WaterBottleManager.js';
 import { Wildlife } from './entities/Wildlife.js';
@@ -14,15 +14,16 @@ import { TrampolineManager } from './entities/TrampolineManager.js';
 import { GemManager } from './entities/GemManager.js';
 import { ShootingStarManager } from './entities/ShootingStarManager.js';
 import { SkyRingManager } from './entities/SkyRingManager.js';
-import { HUD } from './ui/HUD.js?v=20260317';
+import { HUD } from './ui/HUD.js?v=20260317c';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260317';
+import { TouchControls } from './engine/TouchControls.js?v=20260317c';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260317c';
 
-import { WordGame } from './WordGame.js?v=20260317';
-import { RacingGame } from './RacingGame.js?v=20260317';
-import { NumberGame } from './NumberGame.js?v=20260317';
+import { WordGame } from './WordGame.js?v=20260317c';
+import { RacingGame } from './RacingGame.js?v=20260317c';
+import { NumberGame } from './NumberGame.js?v=20260317c';
 
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
@@ -132,6 +133,7 @@ class Game {
         window.addEventListener('resize', () => this.onResize());
 
         document.getElementById('start-button').addEventListener('click', () => {
+            showGlobalHomeButton(() => this.goToStartScreen());
             this.startGame();
         });
 
@@ -139,6 +141,10 @@ class Game {
     }
 
     bindHudHandlers() {
+        document.getElementById('hud-back-btn').onclick = () => {
+            this.goToStartScreen();
+        };
+
         document.getElementById('next-round-btn').onclick = () => {
             if (!this.music.isPlaying) this.music.start();
             this.roundManager.startNextRound();
@@ -161,6 +167,10 @@ class Game {
     }
 
     startGame() {
+        if (!wellbeingManager.beginActivity('explorador', () => this.goToStartScreen())) {
+            return;
+        }
+
         this.bindHudHandlers();
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('word-hud').style.display = 'none';
@@ -336,6 +346,10 @@ class Game {
         requestAnimationFrame(() => this.loop());
 
         const delta = Math.min(this.clock.getDelta(), 0.05);
+
+        if (wellbeingManager.tick(delta)) {
+            return;
+        }
 
         this.roundManager.update(delta);
 
@@ -513,9 +527,11 @@ class Game {
 
     goToStartScreen() {
         this.isRunning = false;
+        wellbeingManager.endActivity();
         this.music.stop();
         this.sound.stopAmbient();
         this.hud.hideAllOverlays();
+        this.hud.hideLessonChip();
         this.hud.roundBar.style.display = 'none';
         document.getElementById('hud').style.display = 'none';
         if (this.touchControls) this.touchControls.hide();
@@ -566,12 +582,26 @@ const game = new Game();
 let wordGame = null;
 let racingGame = null;
 let numberGame = null;
+const globalHomeButton = document.getElementById('global-home-btn');
+
+function showGlobalHomeButton(onClick) {
+    if (!globalHomeButton) return;
+    globalHomeButton.onclick = onClick;
+    globalHomeButton.style.display = 'flex';
+}
+
+function hideGlobalHomeButton() {
+    if (!globalHomeButton) return;
+    globalHomeButton.style.display = 'none';
+    globalHomeButton.onclick = null;
+}
 
 function showStartScreen() {
     document.getElementById('start-screen').style.display = 'flex';
     document.getElementById('hud').style.display = 'none';
     document.getElementById('word-hud').style.display = 'none';
     document.getElementById('number-hud').style.display = 'none';
+    hideGlobalHomeButton();
 }
 
 document.getElementById('word-mode-button').addEventListener('click', () => {
@@ -581,6 +611,7 @@ document.getElementById('word-mode-button').addEventListener('click', () => {
     if (!wordGame) {
         wordGame = new WordGame(() => showStartScreen(), game.renderer);
     }
+    showGlobalHomeButton(() => wordGame.goToMenu());
     wordGame.start();
 });
 
@@ -591,6 +622,7 @@ document.getElementById('racing-mode-button').addEventListener('click', () => {
     if (!racingGame) {
         racingGame = new RacingGame(() => showStartScreen(), game.renderer);
     }
+    showGlobalHomeButton(() => racingGame.goToMenu());
     racingGame.start();
 });
 
@@ -601,5 +633,6 @@ document.getElementById('number-mode-button').addEventListener('click', () => {
     if (!numberGame) {
         numberGame = new NumberGame(() => showStartScreen(), game.renderer);
     }
+    showGlobalHomeButton(() => numberGame.goToMenu());
     numberGame.start();
 });

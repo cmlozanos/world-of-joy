@@ -27,6 +27,31 @@ const ROAD_CONTROL_POINTS = [
     new THREE.Vector3(-255, 0, -45),
 ];
 
+const WORLD_PROFILES = {
+    full: {
+        treeCount: TREE_COUNT,
+        rockCount: ROCK_COUNT,
+        bushCount: BUSH_COUNT,
+        flowerCount: FLOWER_COUNT,
+        cloudCount: 20,
+        roadPaddingTrees: 3,
+        roadPaddingRocks: 2,
+        roadPaddingBushes: 1.5,
+        roadPaddingFlowers: 1,
+    },
+    racing: {
+        treeCount: 230,
+        rockCount: 60,
+        bushCount: 85,
+        flowerCount: 0,
+        cloudCount: 8,
+        roadPaddingTrees: 8,
+        roadPaddingRocks: 6,
+        roadPaddingBushes: 5,
+        roadPaddingFlowers: 4,
+    },
+};
+
 export class World {
     constructor(scene) {
         this.scene = scene;
@@ -35,17 +60,22 @@ export class World {
         this.heightData = null;
         this._dummy = new THREE.Object3D();
         this._color = new THREE.Color();
+        this.profile = WORLD_PROFILES.full;
         this.buildRoadData();
     }
 
-    generate(onComplete) {
+    generate(optionsOrCallback, maybeCallback) {
+        const options = typeof optionsOrCallback === 'function' ? {} : (optionsOrCallback || {});
+        const onComplete = typeof optionsOrCallback === 'function' ? optionsOrCallback : maybeCallback;
+
+        this.profile = WORLD_PROFILES[options.profile] || WORLD_PROFILES.full;
         this.createTerrain();
         this.createRoad();
-        this.createTrees();
-        this.createRocks();
-        this.createBushes();
-        this.createFlowers();
-        this.createClouds();
+        this.createTrees(this.profile.treeCount, this.profile.roadPaddingTrees);
+        this.createRocks(this.profile.rockCount, this.profile.roadPaddingRocks);
+        this.createBushes(this.profile.bushCount, this.profile.roadPaddingBushes);
+        this.createFlowers(this.profile.flowerCount, this.profile.roadPaddingFlowers);
+        this.createClouds(this.profile.cloudCount);
 
         if (onComplete) {
             setTimeout(onComplete, 100);
@@ -204,17 +234,17 @@ export class World {
         colorsArray[index + 2] = Math.max(0, Math.min(1, color.b + variation));
     }
 
-    createTrees() {
+    createTrees(count = TREE_COUNT, roadPadding = 3) {
         const halfWorld = WORLD_SIZE / 2 - 10;
         const roundTreeData = [];
         const pineTreeData = [];
 
-        for (let i = 0; i < TREE_COUNT; i++) {
+        for (let i = 0; i < count; i++) {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
 
             if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
-            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 3)) continue;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + roadPadding)) continue;
 
             const y = this.getHeightAt(x, z);
 
@@ -346,21 +376,23 @@ export class World {
         this.scene.add(cones);
     }
 
-    createRocks() {
+    createRocks(count = ROCK_COUNT, roadPadding = 2) {
         const halfWorld = WORLD_SIZE / 2 - 10;
         const dummy = this._dummy;
         const color = this._color;
 
         const geometry = new THREE.DodecahedronGeometry(1, 0);
         const material = new THREE.MeshLambertMaterial({ color: 0xffffff });
-        const rocks = new THREE.InstancedMesh(geometry, material, ROCK_COUNT);
+        const rocks = new THREE.InstancedMesh(geometry, material, count);
         rocks.castShadow = true;
         rocks.receiveShadow = true;
 
-        for (let i = 0; i < ROCK_COUNT; i++) {
+        let placed = 0;
+
+        for (let i = 0; i < count * 2 && placed < count; i++) {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
-            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 2)) continue;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + roadPadding)) continue;
             const y = this.getHeightAt(x, z);
             const scale = 0.3 + Math.random() * 0.6;
 
@@ -368,32 +400,36 @@ export class World {
             dummy.scale.set(scale, scale * 0.7, scale);
             dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
             dummy.updateMatrix();
-            rocks.setMatrixAt(i, dummy.matrix);
+            rocks.setMatrixAt(placed, dummy.matrix);
 
             color.setHex(0x666666 + Math.floor(Math.random() * 0x333333));
-            rocks.setColorAt(i, color);
+            rocks.setColorAt(placed, color);
+            placed++;
         }
 
         rocks.instanceMatrix.needsUpdate = true;
         rocks.instanceColor.needsUpdate = true;
+        rocks.count = placed;
 
         this.scene.add(rocks);
     }
 
-    createBushes() {
+    createBushes(count = BUSH_COUNT, roadPadding = 1.5) {
         const halfWorld = WORLD_SIZE / 2 - 10;
         const dummy = this._dummy;
         const color = this._color;
 
         const geometry = new THREE.SphereGeometry(1, 8, 8);
         const material = new THREE.MeshLambertMaterial({ color: 0xffffff });
-        const bushes = new THREE.InstancedMesh(geometry, material, BUSH_COUNT);
+        const bushes = new THREE.InstancedMesh(geometry, material, count);
         bushes.castShadow = true;
 
-        for (let i = 0; i < BUSH_COUNT; i++) {
+        let placed = 0;
+
+        for (let i = 0; i < count * 2 && placed < count; i++) {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
-            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 1.5)) continue;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + roadPadding)) continue;
             const y = this.getHeightAt(x, z);
             const scale = 0.3 + Math.random() * 0.4;
 
@@ -401,19 +437,23 @@ export class World {
             dummy.scale.set(scale * 1.3, scale, scale * 1.3);
             dummy.rotation.set(0, 0, 0);
             dummy.updateMatrix();
-            bushes.setMatrixAt(i, dummy.matrix);
+            bushes.setMatrixAt(placed, dummy.matrix);
 
             color.setHex(0x2d7a2d + Math.floor(Math.random() * 0x002200));
-            bushes.setColorAt(i, color);
+            bushes.setColorAt(placed, color);
+            placed++;
         }
 
         bushes.instanceMatrix.needsUpdate = true;
         bushes.instanceColor.needsUpdate = true;
+        bushes.count = placed;
 
         this.scene.add(bushes);
     }
 
-    createFlowers() {
+    createFlowers(count = FLOWER_COUNT, roadPadding = 1) {
+        if (count <= 0) return;
+
         const halfWorld = WORLD_SIZE / 2 - 10;
         const flowerColors = [0xff6b6b, 0xffd93d, 0x6bcaff, 0xff9ff3, 0xffffff, 0xff7675];
         const dummy = this._dummy;
@@ -421,44 +461,51 @@ export class World {
 
         const stemGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.25, 4);
         const stemMat = new THREE.MeshLambertMaterial({ color: 0x228b22 });
-        const stems = new THREE.InstancedMesh(stemGeo, stemMat, FLOWER_COUNT);
+        const stems = new THREE.InstancedMesh(stemGeo, stemMat, count);
 
         const headGeo = new THREE.SphereGeometry(0.1, 6, 6);
         const headMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-        const heads = new THREE.InstancedMesh(headGeo, headMat, FLOWER_COUNT);
+        const heads = new THREE.InstancedMesh(headGeo, headMat, count);
 
-        for (let i = 0; i < FLOWER_COUNT; i++) {
+        let placed = 0;
+
+        for (let i = 0; i < count * 2 && placed < count; i++) {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
-            if (this.isNearRoad(x, z, ROAD_CLEARANCE + 1)) continue;
+            if (this.isNearRoad(x, z, ROAD_CLEARANCE + roadPadding)) continue;
             const y = this.getHeightAt(x, z);
 
             dummy.position.set(x, y + 0.125, z);
             dummy.scale.set(1, 1, 1);
             dummy.rotation.set(0, 0, 0);
             dummy.updateMatrix();
-            stems.setMatrixAt(i, dummy.matrix);
+            stems.setMatrixAt(placed, dummy.matrix);
 
             dummy.position.set(x, y + 0.28, z);
             dummy.updateMatrix();
-            heads.setMatrixAt(i, dummy.matrix);
+            heads.setMatrixAt(placed, dummy.matrix);
 
             color.setHex(flowerColors[Math.floor(Math.random() * flowerColors.length)]);
-            heads.setColorAt(i, color);
+            heads.setColorAt(placed, color);
+            placed++;
         }
 
         stems.instanceMatrix.needsUpdate = true;
         heads.instanceMatrix.needsUpdate = true;
         heads.instanceColor.needsUpdate = true;
+        stems.count = placed;
+        heads.count = placed;
 
         this.scene.add(stems);
         this.scene.add(heads);
     }
 
-    createClouds() {
+    createClouds(count = 20) {
+        if (count <= 0) return;
+
         const cloudPuffs = [];
 
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < count; i++) {
             const cx = (Math.random() - 0.5) * WORLD_SIZE;
             const cy = 40 + Math.random() * 20;
             const cz = (Math.random() - 0.5) * WORLD_SIZE;

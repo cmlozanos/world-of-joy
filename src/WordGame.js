@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260317';
+import { InputManager } from './engine/InputManager.js?v=20260317b';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
@@ -7,9 +7,10 @@ import { WordRoundManager, WORD_STATE } from './engine/WordRoundManager.js';
 import { Character } from './entities/Character.js';
 import { LetterManager } from './entities/LetterManager.js';
 import { Room } from './world/Room.js';
-import { WordHUD } from './ui/WordHUD.js?v=20260317';
+import { WordHUD } from './ui/WordHUD.js?v=20260317b';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260317';
+import { TouchControls } from './engine/TouchControls.js?v=20260317b';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260317b';
 
 export class WordGame {
     constructor(onBack, renderer) {
@@ -127,6 +128,10 @@ export class WordGame {
     }
 
     start() {
+        if (!wellbeingManager.beginActivity('palabras', () => this.goToMenu())) {
+            return;
+        }
+
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('hud').style.display = 'none';
         document.getElementById('number-hud').style.display = 'none';
@@ -167,6 +172,7 @@ export class WordGame {
 
     stop() {
         this.isRunning = false;
+        wellbeingManager.endActivity();
         this.music.stop();
         this.sound.stopAmbient();
         this.sound.cancelSpeech();
@@ -236,6 +242,10 @@ export class WordGame {
         requestAnimationFrame(() => this.loop());
 
         const delta = Math.min(this.clock.getDelta(), 0.05);
+
+        if (wellbeingManager.tick(delta)) {
+            return;
+        }
 
         this.roundManager.update(delta);
 

@@ -1,21 +1,22 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260317';
+import { InputManager } from './engine/InputManager.js?v=20260317b';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js?v=20260317';
+import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js?v=20260317b';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
-import { World } from './world/World.js';
-import { RacingCar } from './entities/RacingCar.js?v=20260317';
+import { World } from './world/World.js?v=20260317b';
+import { RacingCar } from './entities/RacingCar.js?v=20260317b';
 import { FuelCanManager } from './entities/FuelCanManager.js';
 import { NitroCanManager } from './entities/NitroCanManager.js';
 import { RaceMarkerManager } from './entities/RaceMarkerManager.js';
-import { RoadSignManager } from './entities/RoadSignManager.js?v=20260317';
-import { HUD } from './ui/HUD.js?v=20260317';
+import { RoadSignManager } from './entities/RoadSignManager.js?v=20260317b';
+import { HUD } from './ui/HUD.js?v=20260317b';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260317';
+import { TouchControls } from './engine/TouchControls.js?v=20260317b';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260317b';
 
 const CAR_HEIGHT_OFFSET = 0.48;
 const NITRO_DURATION = 4.5;
@@ -119,6 +120,10 @@ export class RacingGame {
     }
 
     bindHudHandlers() {
+        document.getElementById('hud-back-btn').onclick = () => {
+            this.goToMenu();
+        };
+
         document.getElementById('next-round-btn').onclick = () => {
             this.roundManager.startNextRound();
         };
@@ -141,6 +146,10 @@ export class RacingGame {
     }
 
     start() {
+        if (!wellbeingManager.beginActivity('racing', () => this.goToMenu())) {
+            return;
+        }
+
         this.bindHudHandlers();
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('word-hud').style.display = 'none';
@@ -157,7 +166,7 @@ export class RacingGame {
         }
 
         if (this.initialized) {
-            this.sound.playAmbient();
+            this.sound.stopAmbient();
             this.isRunning = true;
             this.clock.start();
             this.roundManager.restart();
@@ -172,12 +181,10 @@ export class RacingGame {
         document.getElementById('loading-screen').style.display = 'flex';
 
         requestAnimationFrame(() => {
-            this.world.generate(() => {
+            this.world.generate({ profile: 'racing' }, () => {
                 this.initialized = true;
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('hud').style.display = 'block';
-
-                this.sound.playAmbient();
                 this.isRunning = true;
                 this.clock.start();
 
@@ -192,6 +199,7 @@ export class RacingGame {
 
     stop() {
         this.isRunning = false;
+        wellbeingManager.endActivity();
         this.music.stop();
         this.sound.stopAmbient();
         this.sound.cancelSpeech();
@@ -377,6 +385,11 @@ export class RacingGame {
         requestAnimationFrame(() => this.loop());
 
         const delta = Math.min(this.clock.getDelta(), 0.05);
+
+        if (wellbeingManager.tick(delta)) {
+            return;
+        }
+
         this.roundManager.update(delta);
 
         if (this.roundManager.state !== this.previousState) {
