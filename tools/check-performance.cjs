@@ -102,7 +102,8 @@ const load = async file => import(await moduleURL(path.join(root, file)));
     Object.defineProperty(globalThis, 'navigator', {value: {userAgent: 'Android'}, configurable: true});
     globalThis.window = {devicePixelRatio: 2};
     const game = {scene, renderer};
-    assert.equal(quality.light, false, 'normal graphics remain default');
+    assert.equal(quality.light, true, 'light graphics are the first-run default');
+    quality.light = false;
     quality.apply(game); assert.equal(renderer.pixelRatio, 1.5); assert.equal(renderer.shadowMap.enabled, true);
     quality.light = true; quality.revision++; quality.apply(game);
     assert.equal(renderer.pixelRatio, 1); assert.equal(renderer.shadowMap.enabled, false);
@@ -120,5 +121,16 @@ const load = async file => import(await moduleURL(path.join(root, file)));
     assert.equal(material.version, version + 1, 'no shader churn per frame or unrelated scene additions');
     delete globalThis.window;
     if (previousNavigator) Object.defineProperty(globalThis, 'navigator', previousNavigator); else delete globalThis.navigator;
+    const vm = require('node:vm');
+    const qualitySource = fs.readFileSync(path.join(root, 'src/engine/Quality.js'), 'utf8').replace('export const quality', 'const quality');
+    for (const saved of [null, 'normal', 'light', 'invalid', 'blocked']) {
+        const data = {'world-of-joy-quality': saved, progress: 'keep-me'}, writes = [], attributes = {};
+        const button = {setAttribute: (key, value) => attributes[key] = value, getAttribute: key => attributes[key], addEventListener() {}};
+        const scope = {localStorage: {getItem(key) { if (saved === 'blocked') throw Error('disabled'); return data[key]; }, setItem(key,value) { writes.push(key);data[key]=value; }}, document: {getElementById: () => button, documentElement: {classList: {toggle() {}}}}};
+        vm.runInNewContext(qualitySource + '; quality.init(); this.light=quality.light;', scope);
+        assert.equal(scope.light, saved !== 'normal', 'stored choice: ' + saved);
+        assert.deepEqual(writes, [], 'startup never writes preference/progress');
+        assert.equal(data.progress, 'keep-me');
+    }
     console.log('World performance contracts passed without browser/GPU.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

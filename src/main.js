@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { FixedStep, uiDue } from './engine/FixedStep.js';
 import { quality } from './engine/Quality.js';
-import { InputManager } from './engine/InputManager.js?v=20260925-performance1';
+import { InputManager } from './engine/InputManager.js?v=20260925-performance2';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
 import { RoundManager, ROUND_STATE, MISSION_TYPE, MISSION_HINTS } from './engine/RoundManager.js';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
 import { Character } from './entities/Character.js';
-import { World } from './world/World.js?v=20260925-performance1';
+import { World } from './world/World.js?v=20260925-performance2';
 import { FruitManager } from './entities/FruitManager.js';
 import { WaterBottleManager } from './entities/WaterBottleManager.js';
 import { Wildlife } from './entities/Wildlife.js';
@@ -16,16 +16,16 @@ import { TrampolineManager } from './entities/TrampolineManager.js';
 import { GemManager } from './entities/GemManager.js';
 import { ShootingStarManager } from './entities/ShootingStarManager.js';
 import { SkyRingManager } from './entities/SkyRingManager.js';
-import { HUD } from './ui/HUD.js?v=20260925-performance1';
+import { HUD } from './ui/HUD.js?v=20260925-performance2';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260925-performance1';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-performance1';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-performance2';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-performance2';
 
-import { WordGame } from './WordGame.js?v=20260925-performance1';
-import { RacingGame } from './RacingGame.js?v=20260925-performance1';
-import { NumberGame } from './NumberGame.js?v=20260925-performance1';
+import { WordGame } from './WordGame.js?v=20260925-performance2';
+import { RacingGame } from './RacingGame.js?v=20260925-performance2';
+import { NumberGame } from './NumberGame.js?v=20260925-performance2';
 
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',

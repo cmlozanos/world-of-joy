@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'world-of-joy-quality';
-const DEFAULT_LIGHT = false;
+const DEFAULT_LIGHT = true;
 
 export const quality = {
     light: DEFAULT_LIGHT,

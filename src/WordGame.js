@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FixedStep, uiDue } from './engine/FixedStep.js';
 import { quality } from './engine/Quality.js';
-import { InputManager } from './engine/InputManager.js?v=20260925-performance1';
+import { InputManager } from './engine/InputManager.js?v=20260925-performance2';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
@@ -9,10 +9,10 @@ import { WordRoundManager, WORD_STATE } from './engine/WordRoundManager.js';
 import { Character } from './entities/Character.js';
 import { LetterManager } from './entities/LetterManager.js';
 import { Room } from './world/Room.js';
-import { WordHUD } from './ui/WordHUD.js?v=20260925-performance1';
+import { WordHUD } from './ui/WordHUD.js?v=20260925-performance2';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260925-performance1';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-performance1';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-performance2';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-performance2';
 
 export class WordGame {
     constructor(onBack, renderer) {

@@ -15,6 +15,7 @@ async function solve(page){const value=await page.locator('#gate-prompt').textCo
   page.on('console',message=>{if(message.type()==='error'&&/THREE|shader|WebGLProgram/i.test(message.text()))errors.push(message.text());});
   await page.goto('http://127.0.0.1:'+server.address().port+'/?test=1');await page.waitForSelector('#learning-gate');await solve(page);await page.waitForFunction(()=>typeof window.__worldRead==='function');
   if(process.env.WORLD_RENDER_ONLY){
+   await page.locator('#global-quality-btn').click(); // Explicit normal baseline; first-run default is light.
    // Normal randomness for the world; the constant above only selects a math challenge.
    await page.evaluate(()=>{Math.random=window.testRandom;});
    await page.locator('#start-button').click();
@@ -38,7 +39,13 @@ async function solve(page){const value=await page.locator('#gate-prompt').textCo
   }
   assert.equal(await page.locator('#global-home-btn').getAttribute('href'),'https://cmlozanos.github.io/games/');
   assert.equal(await page.locator('#global-sound-btn').getAttribute('aria-pressed'),'false');
-  assert.equal(await page.locator('#global-quality-btn').getAttribute('aria-pressed'),'false');
+  assert.equal(await page.locator('#global-quality-btn').getAttribute('aria-pressed'),'true','first-run default is light');
+  assert.equal(await page.evaluate(()=>__worldRenderRead().light),true);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('world-of-joy-quality')),null,'default is not written as an explicit preference');
+  await page.locator('#global-quality-btn').click();
+  assert.equal(await page.evaluate(()=>localStorage.getItem('world-of-joy-quality')),'normal');
+  await page.reload();await page.waitForSelector('#learning-gate');await solve(page);await page.waitForFunction(()=>typeof __worldRead==='function');
+  assert.equal(await page.locator('#global-quality-btn').getAttribute('aria-pressed'),'false','explicit normal preference survives reload');
   await page.locator('#global-quality-btn').click();
   assert.equal(await page.evaluate(()=>localStorage.getItem('world-of-joy-quality')),'light');
   if(process.env.WORLD_SCREENSHOT_DIR){fs.mkdirSync(process.env.WORLD_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.WORLD_SCREENSHOT_DIR,'menu.png')});}

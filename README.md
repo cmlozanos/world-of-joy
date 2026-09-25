@@ -139,7 +139,7 @@ The persistent home icon opens https://cmlozanos.github.io/games/; each mode ret
 
 ## Performance on older tablets
 
-The leaf-icon button switches between normal and light graphics, and remembers the choice locally. Normal remains the default. Light mode disables real-time shadows, decorative point lights and interface blur, and caps rendering at one device pixel per CSS pixel. Both modes retain the same missions, object counts, collisions and controls; sound still starts OFF. The icon is an inline vector, not an emoji requiring a recent Android font.
+The leaf-icon button switches between normal and light graphics, and remembers the choice locally. Light is the default when no valid preference exists, including storage-disabled browsers; an explicitly saved normal or light choice is preserved without rewriting progress. Light mode disables real-time shadows, decorative point lights and interface blur, and caps rendering at one device pixel per CSS pixel. Both modes retain the same missions, object counts, collisions and controls; sound still starts OFF. The icon is an inline vector, not an emoji requiring a recent Android font.
 
 At device pixel ratio 1, both modes render the same number of pixels; light mode saves shadow/lighting/blur work, not resolution. Enabled audio and speech pause when the document is hidden and resume only if their prior state, the educational gate and the sound preference allow it.
 
