@@ -139,7 +139,7 @@ export class HUD {
         if (!animate) return;
 
         this.counterEl.style.transform = 'scale(1.2)';
-        setTimeout(() => {
+        window.WorldLearning.timers.set(() => {
             this.counterEl.style.transform = 'scale(1)';
         }, 150);
     }
@@ -182,7 +182,7 @@ export class HUD {
         popup.textContent = '+1';
 
         document.getElementById('game-container').appendChild(popup);
-        setTimeout(() => popup.remove(), 1000);
+        window.WorldLearning.timers.set(() => popup.remove(), 1000);
     }
 
     worldToScreen(worldPos, camera, renderer) {
@@ -261,10 +261,10 @@ export class HUD {
 
         requestAnimationFrame(() => el.classList.add('visible'));
 
-        setTimeout(() => {
+        window.WorldLearning.timers.set(() => {
             el.classList.remove('visible');
             el.classList.add('fade-out');
-            setTimeout(() => {
+            window.WorldLearning.timers.set(() => {
                 el.remove();
                 this.displayNextMessage();
             }, 500);
@@ -302,7 +302,7 @@ export class HUD {
         if (hint && this.missionHintBar) {
             this.missionHintBar.textContent = hint;
             this.missionHintBar.style.display = 'block';
-            setTimeout(() => {
+            window.WorldLearning.timers.set(() => {
                 if (this.missionHintBar) this.missionHintBar.style.display = 'none';
             }, 8000);
         }
@@ -313,7 +313,7 @@ export class HUD {
             } else {
                 this.instructionsEl.style.display = 'block';
                 this.instructionsEl.style.opacity = '1';
-                setTimeout(() => {
+                window.WorldLearning.timers.set(() => {
                     if (this.instructionsEl) this.instructionsEl.style.opacity = '0';
                 }, 5000);
             }

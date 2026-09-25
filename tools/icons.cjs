@@ -1,0 +1,3 @@
+const fs=require('node:fs'),path=require('node:path');
+const {chromium}=require('@playwright/test');
+(async()=>{const browser=await chromium.launch({headless:true});try{for(const size of [192,512]){const page=await browser.newPage({viewport:{width:size,height:size},deviceScaleFactor:1});await page.setContent('<style>html,body{margin:0;background:transparent}svg{display:block}</style>'+fs.readFileSync(path.join(__dirname,'../icons/icon-'+size+'.svg'),'utf8'));await page.screenshot({path:path.join(__dirname,'../icons/icon-'+size+'.png'),omitBackground:true});await page.close();console.log('Generated '+size+'px PWA icon from original SVG');}}finally{await browser.close();}})().catch(error=>{console.error(error);process.exitCode=1;});

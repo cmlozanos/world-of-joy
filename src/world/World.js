@@ -78,7 +78,7 @@ export class World {
         this.createClouds(this.profile.cloudCount);
 
         if (onComplete) {
-            setTimeout(onComplete, 100);
+            window.WorldLearning.timers.set(onComplete, 100);
         }
     }
 

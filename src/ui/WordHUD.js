@@ -162,10 +162,10 @@ export class WordHUD {
 
         requestAnimationFrame(() => el.classList.add('visible'));
 
-        setTimeout(() => {
+        window.WorldLearning.timers.set(() => {
             el.classList.remove('visible');
             el.classList.add('fade-out');
-            setTimeout(() => {
+            window.WorldLearning.timers.set(() => {
                 el.remove();
                 this.displayNextMessage();
             }, 500);

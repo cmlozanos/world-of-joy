@@ -116,7 +116,7 @@ world-of-joy/
 
 ## Technical Details
 
-- **Rendering**: Three.js (v0.160.0) loaded via CDN import maps
+- **Rendering**: Three.js (v0.160.0) stored locally in `vendor/` under its MIT license; no CDN is required
 - **Character**: Procedurally built low-poly child model with walk/run/idle/jump animations
 - **World**: Procedurally generated terrain with height variation, trees, rocks, bushes, flowers, clouds, and a looping road
 - **Camera**: Smooth third-person follow camera with mouse-controlled orbit
@@ -126,3 +126,13 @@ world-of-joy/
 - **Mobile**: Touch controls with a fixed virtual joystick, smoother steering, and a shared card-based HUD style across modes
 - **Wellbeing**: A gentle reminder appears after several minutes of play, and the app enforces a short break after a longer stretch to reduce compulsive play loops
 - **Racing Focus**: Racing uses a cleaner road-first world profile with fewer distracting decorative elements and no explorer wildlife system
+
+## Educational gate and old tablets (25 September 2026)
+
+The existing four modes are preserved. A local educational challenge is required at entry and after every ten minutes, including offline PWA launches. Game physics, round clocks, pending messages, held touch/keyboard inputs and audio pause during the challenge. The existing twelve-minute wellbeing break remains independent and unchanged.
+
+The persistent home icon opens https://cmlozanos.github.io/games/; each mode retains its separate internal menu button. Sound starts OFF and can be enabled with the speaker icon. The service worker precaches all four modes and local Three.js and only removes this game's obsolete caches. No Ubuntu server or online dependency is needed after installation.
+
+`make check` checks syntax, gate integration, complete offline assets and cache isolation. Run `make install-tests` once, then `make check-browser` for real Chromium checks; optionally provide `CHROME95_PATH` to check the legacy executable. Test dependencies and lockfile belong to this project. The compatibility target is Chrome 95 with WebGL available; actual Android GPU performance requires device testing.
+
+`make icons` regenerates the 192/512px PNG installation icons from the original SVG artwork. `WORLD_PHONE=1 make check-browser` exercises the narrow phone layout; `WORLD_SCREENSHOT_DIR=/absolute/output/directory` saves screenshots for visual inspection. The narrow layout separates educational words/equations from navigation buttons and allows the mode menu to scroll on short screens.

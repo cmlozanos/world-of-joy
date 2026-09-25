@@ -46,7 +46,8 @@ body {
     left: 16px;
     width: 50px;
     height: 50px;
-    display: none;
+    display: flex;
+    text-decoration: none;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(255, 255, 255, 0.18);
@@ -65,6 +66,21 @@ body {
 .global-home-btn:hover {
     transform: translateY(-1px);
     background: linear-gradient(180deg, rgba(25, 36, 54, 0.96), rgba(12, 18, 31, 0.88));
+}
+
+#global-sound-btn {
+    position: absolute;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    left: 80px;
+    width: 50px;
+    height: 50px;
+    z-index: 26;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 50%;
+    color: white;
+    background: #142335;
+    font-size: 24px;
+    cursor: pointer;
 }
 
 #hud {
@@ -481,7 +497,16 @@ body {
 #hud-back-btn,
 #word-back-btn,
 #number-back-btn {
-    display: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    min-height: 48px;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    bottom: auto;
+    left: 144px;
+    width: 48px;
+    padding: 0;
 }
 
 .hud-menu-btn {
@@ -1130,10 +1155,11 @@ body {
     }
 
     #lesson-chip {
-        top: 12px;
-        left: 50%;
-        transform: translateX(-50%);
-        max-width: calc(100vw - 140px);
+        top: 94px;
+        left: auto;
+        right: 10px;
+        transform: none;
+        max-width: calc(100vw - 130px);
         padding: 8px 12px;
         font-size: 12px;
         line-height: 1.25;
@@ -1226,7 +1252,15 @@ body {
     }
 
     #start-screen h1 {
-        font-size: 40px;
+        font-size: 32px;
+        margin-top: 0;
+        text-align: center;
+    }
+
+    #start-screen {
+        padding: 76px 12px 20px;
+        justify-content: flex-start;
+        overflow-y: auto;
     }
 
     #start-screen p {
@@ -1271,8 +1305,8 @@ body {
     #word-display-panel,
     #number-display-panel {
         gap: 8px;
-        top: 10px;
-        max-width: calc(100vw - 120px);
+        top: 76px;
+        max-width: calc(100vw - 20px);
     }
 
     #word-display,
@@ -1365,7 +1399,7 @@ body {
         width: min(92vw, 320px);
         min-width: 0;
         min-height: 0;
-        padding: 18px 20px;
+        padding: 14px 16px;
     }
 
     .mode-icon {
@@ -1376,4 +1410,3 @@ body {
         font-size: 18px;
     }
 }
-

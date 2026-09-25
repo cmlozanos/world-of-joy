@@ -1,16 +1,16 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260317b';
+import { InputManager } from './engine/InputManager.js?v=20260925-gate1';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { NumberRoundManager, NUMBER_STATE } from './engine/NumberRoundManager.js?v=20260317b';
+import { NumberRoundManager, NUMBER_STATE } from './engine/NumberRoundManager.js?v=20260925-gate1';
 import { Character } from './entities/Character.js';
-import { NumberManager } from './entities/NumberManager.js?v=20260317b';
+import { NumberManager } from './entities/NumberManager.js?v=20260925-gate1';
 import { Room } from './world/Room.js';
-import { NumberHUD } from './ui/NumberHUD.js?v=20260317b';
+import { NumberHUD } from './ui/NumberHUD.js?v=20260925-gate1';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260317b';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260317b';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-gate1';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-gate1';
 
 const DIGIT_NAMES = {
     0: 'cero',
@@ -37,7 +37,7 @@ export class NumberGame {
         this.initScene();
         this.initLighting();
         this.initModules();
-        this.bindEvents();
+        this.bindEvents(); window.WorldLearning.attach(this);
     }
 
     initScene() {
@@ -253,6 +253,7 @@ export class NumberGame {
         if (!this.isRunning) return;
         requestAnimationFrame(() => this.loop());
 
+        if (window.WorldLearning.blocked()) { this.clock.getDelta(); return; }
         const delta = Math.min(this.clock.getDelta(), 0.05);
 
         if (wellbeingManager.tick(delta)) {

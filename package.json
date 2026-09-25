@@ -1,0 +1,12 @@
+{
+  "name": "world-of-joy-checks",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "node tools/check.cjs",
+    "test": "node tools/check-browser.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

@@ -1,22 +1,22 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260317b';
+import { InputManager } from './engine/InputManager.js?v=20260925-gate1';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js?v=20260317b';
+import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js?v=20260925-gate1';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
-import { World } from './world/World.js?v=20260317b';
-import { RacingCar } from './entities/RacingCar.js?v=20260317b';
+import { World } from './world/World.js?v=20260925-gate1';
+import { RacingCar } from './entities/RacingCar.js?v=20260925-gate1';
 import { FuelCanManager } from './entities/FuelCanManager.js';
 import { NitroCanManager } from './entities/NitroCanManager.js';
 import { RaceMarkerManager } from './entities/RaceMarkerManager.js';
-import { RoadSignManager } from './entities/RoadSignManager.js?v=20260317b';
-import { HUD } from './ui/HUD.js?v=20260317b';
+import { RoadSignManager } from './entities/RoadSignManager.js?v=20260925-gate1';
+import { HUD } from './ui/HUD.js?v=20260925-gate1';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260317b';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260317b';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-gate1';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-gate1';
 
 const CAR_HEIGHT_OFFSET = 0.48;
 const NITRO_DURATION = 4.5;
@@ -40,7 +40,7 @@ export class RacingGame {
         this.initScene();
         this.initLighting();
         this.initModules();
-        this.bindEvents();
+        this.bindEvents(); window.WorldLearning.attach(this);
     }
 
     initScene() {
@@ -384,6 +384,7 @@ export class RacingGame {
         if (!this.isRunning) return;
         requestAnimationFrame(() => this.loop());
 
+        if (window.WorldLearning.blocked()) { this.clock.getDelta(); return; }
         const delta = Math.min(this.clock.getDelta(), 0.05);
 
         if (wellbeingManager.tick(delta)) {

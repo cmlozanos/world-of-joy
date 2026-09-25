@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260317c';
+import { InputManager } from './engine/InputManager.js?v=20260925-gate1';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
 import { RoundManager, ROUND_STATE, MISSION_TYPE, MISSION_HINTS } from './engine/RoundManager.js';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
 import { Character } from './entities/Character.js';
-import { World } from './world/World.js?v=20260317c';
+import { World } from './world/World.js?v=20260925-gate1';
 import { FruitManager } from './entities/FruitManager.js';
 import { WaterBottleManager } from './entities/WaterBottleManager.js';
 import { Wildlife } from './entities/Wildlife.js';
@@ -14,16 +14,16 @@ import { TrampolineManager } from './entities/TrampolineManager.js';
 import { GemManager } from './entities/GemManager.js';
 import { ShootingStarManager } from './entities/ShootingStarManager.js';
 import { SkyRingManager } from './entities/SkyRingManager.js';
-import { HUD } from './ui/HUD.js?v=20260317c';
+import { HUD } from './ui/HUD.js?v=20260925-gate1';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260317c';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260317c';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-gate1';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-gate1';
 
-import { WordGame } from './WordGame.js?v=20260317c';
-import { RacingGame } from './RacingGame.js?v=20260317c';
-import { NumberGame } from './NumberGame.js?v=20260317c';
+import { WordGame } from './WordGame.js?v=20260925-gate1';
+import { RacingGame } from './RacingGame.js?v=20260925-gate1';
+import { NumberGame } from './NumberGame.js?v=20260925-gate1';
 
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
@@ -48,7 +48,7 @@ class Game {
         this.initScene();
         this.initLighting();
         this.initModules();
-        this.bindEvents();
+        this.bindEvents(); window.WorldLearning.attach(this);
     }
 
     initRenderer() {
@@ -345,6 +345,7 @@ class Game {
         if (!this.isRunning) return;
         requestAnimationFrame(() => this.loop());
 
+        if (window.WorldLearning.blocked()) { this.clock.getDelta(); return; }
         const delta = Math.min(this.clock.getDelta(), 0.05);
 
         if (wellbeingManager.tick(delta)) {
@@ -582,18 +583,26 @@ const game = new Game();
 let wordGame = null;
 let racingGame = null;
 let numberGame = null;
+if (new URLSearchParams(location.search).get('test') === '1') {
+    Object.defineProperty(window, '__worldRead', {value: () => [game, wordGame, numberGame, racingGame].filter(Boolean).map(item => ({
+        mode:item.constructor.name, running:item.isRunning, state:item.roundManager.state,
+        round:item.roundManager.currentRoundIndex, briefing:item.roundManager.briefingTimer,
+        remaining:item.roundManager.timeRemaining, position:(item.character || item.car).getPosition().toArray(),
+        keys:Object.assign({},item.input.keys), audio:item.sound.ctx ? item.sound.ctx.state : null,
+        wellbeing:wellbeingManager.playSecondsSinceBreak
+    }))});
+}
 const globalHomeButton = document.getElementById('global-home-btn');
 
 function showGlobalHomeButton(onClick) {
     if (!globalHomeButton) return;
-    globalHomeButton.onclick = onClick;
     globalHomeButton.style.display = 'flex';
 }
 
 function hideGlobalHomeButton() {
     if (!globalHomeButton) return;
-    globalHomeButton.style.display = 'none';
-    globalHomeButton.onclick = null;
+    // The global exit remains available; each mode retains its own menu button.
+    globalHomeButton.style.display = 'flex';
 }
 
 function showStartScreen() {

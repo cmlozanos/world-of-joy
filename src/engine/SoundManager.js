@@ -47,9 +47,10 @@ export class SoundManager {
         if (!this.ctx) {
             this.ctx = new AudioContext();
         }
-        if (this.ctx.state === 'suspended') {
+        if (this.ctx.state === 'suspended' && window.WorldLearning.soundEnabled) {
             this.ctx.resume();
         }
+        if (!window.WorldLearning.soundEnabled) this.ctx.suspend().catch(() => {});
         if (!this.initialized) {
             this.initSpeech();
         }
@@ -199,26 +200,26 @@ export class SoundManager {
 
     playFruitCollect() {
         this.playNote(523, 0.1, 'sine', 0.12);
-        setTimeout(() => this.playNote(659, 0.1, 'sine', 0.12), 60);
-        setTimeout(() => this.playNote(784, 0.15, 'sine', 0.1), 120);
+        window.WorldLearning.timers.set(() => this.playNote(659, 0.1, 'sine', 0.12), 60);
+        window.WorldLearning.timers.set(() => this.playNote(784, 0.15, 'sine', 0.1), 120);
     }
 
     playWaterCollect() {
         this.playNote(440, 0.08, 'triangle', 0.1);
-        setTimeout(() => this.playNote(587, 0.08, 'triangle', 0.1), 50);
-        setTimeout(() => this.playNote(880, 0.2, 'triangle', 0.08), 100);
+        window.WorldLearning.timers.set(() => this.playNote(587, 0.08, 'triangle', 0.1), 50);
+        window.WorldLearning.timers.set(() => this.playNote(880, 0.2, 'triangle', 0.08), 100);
     }
 
     playFuelCollect() {
         this.playNote(220, 0.08, 'triangle', 0.12);
-        setTimeout(() => this.playNote(330, 0.08, 'triangle', 0.12), 45);
-        setTimeout(() => this.playNote(440, 0.14, 'triangle', 0.1), 90);
+        window.WorldLearning.timers.set(() => this.playNote(330, 0.08, 'triangle', 0.12), 45);
+        window.WorldLearning.timers.set(() => this.playNote(440, 0.14, 'triangle', 0.1), 90);
     }
 
     playNitroCollect() {
         this.playNote(660, 0.07, 'square', 0.1);
-        setTimeout(() => this.playNote(880, 0.07, 'square', 0.1), 35);
-        setTimeout(() => this.playNote(1320, 0.18, 'sawtooth', 0.08), 70);
+        window.WorldLearning.timers.set(() => this.playNote(880, 0.07, 'square', 0.1), 35);
+        window.WorldLearning.timers.set(() => this.playNote(1320, 0.18, 'sawtooth', 0.08), 70);
     }
 
     playFootstep(isRunning) {
@@ -264,16 +265,16 @@ export class SoundManager {
             osc.start();
             osc.stop(this.ctx.currentTime + 0.2);
 
-            this.ambientTimeout = setTimeout(playBird, 3000 + Math.random() * 8000);
+            this.ambientTimeout = window.WorldLearning.timers.set(playBird, 3000 + Math.random() * 8000);
         };
 
-        this.ambientTimeout = setTimeout(playBird, 2000);
+        this.ambientTimeout = window.WorldLearning.timers.set(playBird, 2000);
     }
 
     stopAmbient() {
         this.ambientActive = false;
         if (this.ambientTimeout) {
-            clearTimeout(this.ambientTimeout);
+            window.WorldLearning.timers.clear(this.ambientTimeout);
             this.ambientTimeout = null;
         }
     }
@@ -296,16 +297,16 @@ export class SoundManager {
 
     playGemCollect() {
         this.playNote(660, 0.1, 'sine', 0.12);
-        setTimeout(() => this.playNote(880, 0.1, 'sine', 0.1), 50);
-        setTimeout(() => this.playNote(1100, 0.15, 'sine', 0.08), 100);
-        setTimeout(() => this.playNote(1320, 0.2, 'sine', 0.06), 150);
+        window.WorldLearning.timers.set(() => this.playNote(880, 0.1, 'sine', 0.1), 50);
+        window.WorldLearning.timers.set(() => this.playNote(1100, 0.15, 'sine', 0.08), 100);
+        window.WorldLearning.timers.set(() => this.playNote(1320, 0.2, 'sine', 0.06), 150);
     }
 
     playStarCollect() {
         this.playNote(880, 0.08, 'sine', 0.12);
-        setTimeout(() => this.playNote(1100, 0.08, 'sine', 0.1), 40);
-        setTimeout(() => this.playNote(1320, 0.08, 'sine', 0.1), 80);
-        setTimeout(() => this.playNote(1760, 0.2, 'triangle', 0.08), 120);
+        window.WorldLearning.timers.set(() => this.playNote(1100, 0.08, 'sine', 0.1), 40);
+        window.WorldLearning.timers.set(() => this.playNote(1320, 0.08, 'sine', 0.1), 80);
+        window.WorldLearning.timers.set(() => this.playNote(1760, 0.2, 'triangle', 0.08), 120);
     }
 
     playRingPass() {
@@ -322,19 +323,19 @@ export class SoundManager {
         osc.start();
         osc.stop(this.ctx.currentTime + 0.25);
 
-        setTimeout(() => this.playNote(1000, 0.15, 'triangle', 0.08), 80);
+        window.WorldLearning.timers.set(() => this.playNote(1000, 0.15, 'triangle', 0.08), 80);
     }
 
     playFinish() {
         this.playNote(523, 0.1, 'triangle', 0.12);
-        setTimeout(() => this.playNote(659, 0.1, 'triangle', 0.12), 60);
-        setTimeout(() => this.playNote(784, 0.1, 'triangle', 0.1), 120);
-        setTimeout(() => this.playNote(1047, 0.24, 'sine', 0.08), 180);
+        window.WorldLearning.timers.set(() => this.playNote(659, 0.1, 'triangle', 0.12), 60);
+        window.WorldLearning.timers.set(() => this.playNote(784, 0.1, 'triangle', 0.1), 120);
+        window.WorldLearning.timers.set(() => this.playNote(1047, 0.24, 'sine', 0.08), 180);
     }
 
     playOutOfFuel() {
         this.playNote(220, 0.14, 'triangle', 0.1);
-        setTimeout(() => this.playNote(165, 0.16, 'triangle', 0.08), 90);
-        setTimeout(() => this.playNote(110, 0.2, 'triangle', 0.06), 180);
+        window.WorldLearning.timers.set(() => this.playNote(165, 0.16, 'triangle', 0.08), 90);
+        window.WorldLearning.timers.set(() => this.playNote(110, 0.2, 'triangle', 0.06), 180);
     }
 }
