@@ -1,22 +1,24 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260925-gate1';
+import { FixedStep, uiDue } from './engine/FixedStep.js';
+import { quality } from './engine/Quality.js';
+import { InputManager } from './engine/InputManager.js?v=20260925-performance1';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js?v=20260925-gate1';
+import { RacingRoundManager, RACE_STATE, RACE_FAIL_REASON } from './engine/RacingRoundManager.js?v=20260925-performance1';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
-import { World } from './world/World.js?v=20260925-gate1';
-import { RacingCar } from './entities/RacingCar.js?v=20260925-gate1';
+import { World } from './world/World.js?v=20260925-performance1';
+import { RacingCar } from './entities/RacingCar.js?v=20260925-performance1';
 import { FuelCanManager } from './entities/FuelCanManager.js';
 import { NitroCanManager } from './entities/NitroCanManager.js';
 import { RaceMarkerManager } from './entities/RaceMarkerManager.js';
-import { RoadSignManager } from './entities/RoadSignManager.js?v=20260925-gate1';
-import { HUD } from './ui/HUD.js?v=20260925-gate1';
+import { RoadSignManager } from './entities/RoadSignManager.js?v=20260925-performance1';
+import { HUD } from './ui/HUD.js?v=20260925-performance1';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260925-gate1';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-gate1';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-performance1';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-performance1';
 
 const CAR_HEIGHT_OFFSET = 0.48;
 const NITRO_DURATION = 4.5;
@@ -29,6 +31,8 @@ export class RacingGame {
         this.canvas = document.getElementById('game-canvas');
         this.renderer = renderer;
         this.clock = new THREE.Clock();
+        this.fixedStep = new FixedStep();
+        this.boostUi = {};
         this.isRunning = false;
         this.initialized = false;
         this.routePreviewPoints = [];
@@ -169,10 +173,12 @@ export class RacingGame {
             this.sound.stopAmbient();
             this.isRunning = true;
             this.clock.start();
+            this.fixedStep.reset();
             this.roundManager.restart();
             this.roundManager.startNextRound();
             this.onStateChanged(this.roundManager.state);
             this.previousState = this.roundManager.state;
+            quality.apply(this);
             this.renderer.render(this.scene, this.camera);
             this.loop();
             return;
@@ -187,10 +193,12 @@ export class RacingGame {
                 document.getElementById('hud').style.display = 'block';
                 this.isRunning = true;
                 this.clock.start();
+                this.fixedStep.reset();
 
                 this.roundManager.startNextRound();
                 this.onStateChanged(this.roundManager.state);
                 this.previousState = this.roundManager.state;
+                quality.apply(this);
                 this.renderer.render(this.scene, this.camera);
                 this.loop();
             });
@@ -384,11 +392,18 @@ export class RacingGame {
         if (!this.isRunning) return;
         requestAnimationFrame(() => this.loop());
 
-        if (window.WorldLearning.blocked()) { this.clock.getDelta(); return; }
-        const delta = Math.min(this.clock.getDelta(), 0.05);
+        if (window.WorldLearning.blocked() || document.hidden) {
+            this.clock.getDelta(); this.fixedStep.reset(); return;
+        }
+        this.fixedStep.advance(this.clock.getDelta(), delta => this.step(delta));
+        quality.apply(this);
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    step(delta) {
 
         if (wellbeingManager.tick(delta)) {
-            return;
+            return false;
         }
 
         this.roundManager.update(delta);
@@ -416,9 +431,9 @@ export class RacingGame {
             }
         }
 
-        this.hud.updateBoost(this.car.getBoostTimeRemaining(), NITRO_DURATION);
+        if (uiDue(this.boostUi, delta)) this.hud.updateBoost(this.car.getBoostTimeRemaining(), NITRO_DURATION);
         this.updateShadowCamera();
-        this.renderer.render(this.scene, this.camera);
+
     }
 
     updateGameplay(delta) {
@@ -472,6 +487,7 @@ export class RacingGame {
         }
 
         const round = this.roundManager.getCurrentRound();
+        if (!uiDue(this, delta)) return;
         this.hud.updateTimer(this.roundManager.timeRemaining, round.timeLimit);
         this.hud.updateMissionProgress(this.roundManager.progress, 1);
         this.hud.updateCounter(Math.ceil(this.car.getFuel()), this.car.getMaxFuel());

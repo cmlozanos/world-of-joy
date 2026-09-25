@@ -1,4 +1,4 @@
-.PHONY: run serve stop help check check-browser install-tests icons
+.PHONY: run serve stop help check check-browser check-performance measure-render install-tests icons
 
 .DEFAULT_GOAL := help
 
@@ -12,6 +12,14 @@ install-tests:
 ## check: Validate educational gate, modules, local offline resources and cache isolation
 check:
 	node tools/check.cjs
+
+## check-performance: Verify fixed-step physics, batched pickups, culling and resource lifetime
+check-performance:
+	node tools/check-performance.cjs
+
+## measure-render: Sample Three.js render counters with Android UA, DPR1, normal random world
+measure-render:
+	WORLD_RENDER_ONLY=1 node tools/check-browser.cjs
 
 ## check-browser: Test all four modes with real input, pause, gate, home and offline
 check-browser:

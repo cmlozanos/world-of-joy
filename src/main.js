@@ -1,12 +1,14 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260925-gate1';
+import { FixedStep, uiDue } from './engine/FixedStep.js';
+import { quality } from './engine/Quality.js';
+import { InputManager } from './engine/InputManager.js?v=20260925-performance1';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
 import { RoundManager, ROUND_STATE, MISSION_TYPE, MISSION_HINTS } from './engine/RoundManager.js';
 import { ScenarioTheme } from './engine/ScenarioTheme.js';
 import { Character } from './entities/Character.js';
-import { World } from './world/World.js?v=20260925-gate1';
+import { World } from './world/World.js?v=20260925-performance1';
 import { FruitManager } from './entities/FruitManager.js';
 import { WaterBottleManager } from './entities/WaterBottleManager.js';
 import { Wildlife } from './entities/Wildlife.js';
@@ -14,16 +16,16 @@ import { TrampolineManager } from './entities/TrampolineManager.js';
 import { GemManager } from './entities/GemManager.js';
 import { ShootingStarManager } from './entities/ShootingStarManager.js';
 import { SkyRingManager } from './entities/SkyRingManager.js';
-import { HUD } from './ui/HUD.js?v=20260925-gate1';
+import { HUD } from './ui/HUD.js?v=20260925-performance1';
 import { Minimap } from './ui/Minimap.js';
 import { Compass } from './ui/Compass.js';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260925-gate1';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-gate1';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-performance1';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-performance1';
 
-import { WordGame } from './WordGame.js?v=20260925-gate1';
-import { RacingGame } from './RacingGame.js?v=20260925-gate1';
-import { NumberGame } from './NumberGame.js?v=20260925-gate1';
+import { WordGame } from './WordGame.js?v=20260925-performance1';
+import { RacingGame } from './RacingGame.js?v=20260925-performance1';
+import { NumberGame } from './NumberGame.js?v=20260925-performance1';
 
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
@@ -40,6 +42,8 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.clock = new THREE.Clock();
+        this.fixedStep = new FixedStep();
+        this.boostUi = {};
         this.isRunning = false;
         this.roundScore = 0;
         this.worldGenerated = false;
@@ -59,8 +63,8 @@ class Game {
             powerPreference: 'high-performance',
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.5 : 2));
-        this.renderer.shadowMap.enabled = true;
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality.light ? 1 : (this.isMobile ? 1.5 : 2)));
+        this.renderer.shadowMap.enabled = !quality.light;
         this.renderer.shadowMap.type = THREE.PCFShadowMap;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.2;
@@ -183,9 +187,11 @@ class Game {
             this.music.start();
             this.isRunning = true;
             this.clock.start();
+            this.fixedStep.reset();
             this.roundManager.startNextRound();
             this.onRoundStateChanged(this.roundManager.state);
             this.previousRoundState = this.roundManager.state;
+            quality.apply(this);
             this.renderer.render(this.scene, this.camera);
             this.loop();
             return;
@@ -213,10 +219,12 @@ class Game {
                 this.music.start();
                 this.isRunning = true;
                 this.clock.start();
+                this.fixedStep.reset();
 
                 this.roundManager.startNextRound();
                 this.onRoundStateChanged(this.roundManager.state);
                 this.previousRoundState = this.roundManager.state;
+                quality.apply(this);
                 this.renderer.render(this.scene, this.camera);
                 this.loop();
             });
@@ -345,11 +353,25 @@ class Game {
         if (!this.isRunning) return;
         requestAnimationFrame(() => this.loop());
 
-        if (window.WorldLearning.blocked()) { this.clock.getDelta(); return; }
-        const delta = Math.min(this.clock.getDelta(), 0.05);
+        if (window.WorldLearning.blocked() || document.hidden) {
+            this.clock.getDelta(); this.fixedStep.reset(); return;
+        }
+        const advanced = this.fixedStep.advance(this.clock.getDelta(), delta => this.step(delta));
+        if (advanced > 0) {
+            this.updateVisibility();
+            this.fruitManager.animate(advanced);
+            this.waterBottleManager.animate(advanced);
+            this.gemManager.animate(advanced);
+            this.wildlife.update(advanced, this.world);
+        }
+        quality.apply(this);
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    step(delta) {
 
         if (wellbeingManager.tick(delta)) {
-            return;
+            return false;
         }
 
         this.roundManager.update(delta);
@@ -360,17 +382,13 @@ class Game {
         }
 
         // Always keep visuals alive
-        this.wildlife.update(delta, this.world);
         this.particles.update(delta);
 
         if (this.roundManager.isPlaying()) {
             this.updateGameplay(delta);
         } else {
             // Animate collectibles even when not playing (visual polish)
-            this.fruitManager.animate(delta);
-            this.waterBottleManager.animate(delta);
             this.trampolineManager.animate(delta);
-            this.gemManager.animate(delta);
             this.skyRingManager.animate(delta);
 
             if (this.roundManager.state === ROUND_STATE.BRIEFING) {
@@ -379,9 +397,9 @@ class Game {
             }
         }
 
-        this.hud.updateBoost(this.character.getBoostTimeRemaining());
+        if (uiDue(this.boostUi, delta)) this.hud.updateBoost(this.character.getBoostTimeRemaining());
         this.updateShadowCamera();
-        this.renderer.render(this.scene, this.camera);
+
     }
 
     updateGameplay(delta) {
@@ -457,6 +475,7 @@ class Game {
             }
         });
 
+        if (!uiDue(this, delta)) return;
         this.hud.updateTimer(this.roundManager.timeRemaining, round.timeLimit);
         this.hud.updateMissionProgress(this.roundManager.progress, round.target);
 
@@ -477,7 +496,6 @@ class Game {
         const compassTargets = this.getCompassTargets(round);
         this.compass.update(this.character, compassTargets);
 
-        this.updateVisibility();
     }
 
     getCompassTargets(round) {
@@ -576,14 +594,39 @@ class Game {
         cull(this.waterBottleManager.bottles, 'collected', nearDistSq);
         cull(this.gemManager.gems, 'collected', nearDistSq);
         cull(this.skyRingManager.rings, 'passed', nearDistSq);
+        cull(this.wildlife.butterflies, 'removed', farDistSq);
+        cull(this.wildlife.rabbits, 'removed', farDistSq);
+        cull(this.wildlife.birds, 'removed', farDistSq);
     }
 }
 
+quality.init();
 const game = new Game();
 let wordGame = null;
 let racingGame = null;
 let numberGame = null;
+document.addEventListener('visibilitychange', () => {
+    // A hidden tab may receive no RAF at all: reset on the event, not only in loop().
+    for (const item of [game, wordGame, numberGame, racingGame]) {
+        if (!item) continue;
+        item.clock.getDelta();
+        item.fixedStep.reset();
+        if (document.hidden) {
+            item.input.keys = {};
+            item.input.setVirtualTurnAxis(0);
+            if (item.touchControls) item.touchControls.resetAllInputs();
+        }
+    }
+});
 if (new URLSearchParams(location.search).get('test') === '1') {
+    Object.defineProperty(window, '__worldRenderRead', {value: () => {
+        const active = [game, wordGame, numberGame, racingGame].find(item => item && item.isRunning) || game;
+        let pointLights = 0;
+        active.scene.traverse(item => { if (item.isPointLight && item.visible) pointLights++; });
+        return {light: quality.light, calls: game.renderer.info.render.calls,
+            triangles: game.renderer.info.render.triangles, geometries: game.renderer.info.memory.geometries,
+            shadows: game.renderer.shadowMap.enabled, pixelRatio: game.renderer.getPixelRatio(), pointLights};
+    }});
     Object.defineProperty(window, '__worldRead', {value: () => [game, wordGame, numberGame, racingGame].filter(Boolean).map(item => ({
         mode:item.constructor.name, running:item.isRunning, state:item.roundManager.state,
         round:item.roundManager.currentRoundIndex, briefing:item.roundManager.briefingTimer,

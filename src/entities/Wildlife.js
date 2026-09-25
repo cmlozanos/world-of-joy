@@ -242,6 +242,7 @@ export class Wildlife {
 
     updateButterflies(delta) {
         for (const b of this.butterflies) {
+            if (!b.group.visible) continue;
             b.phase += delta * b.speed;
 
             // Circular flight pattern
@@ -262,6 +263,7 @@ export class Wildlife {
 
     updateRabbits(delta, world) {
         for (const r of this.rabbits) {
+            if (!r.group.visible) continue;
             r.hopTimer += delta;
 
             if (!r.isHopping && r.hopTimer > r.hopCooldown) {
@@ -296,6 +298,7 @@ export class Wildlife {
 
     updateBirds(delta) {
         for (const b of this.birds) {
+            if (!b.group.visible) continue;
             b.phase += delta * b.speed * 0.3;
 
             // Circular soaring pattern

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PickupBatch, disposePickups, animateCollection } from '../engine/PickupBatch.js';
 
 const BOTTLE_COUNT = 80;
 const COLLECTION_RADIUS = 2.5;
@@ -13,6 +14,7 @@ const BEACON_HEIGHT = 6;
 export class WaterBottleManager {
     constructor(scene) {
         this.scene = scene;
+        this.batch = new PickupBatch(scene);
         this.bottles = [];
         this.time = 0;
     }
@@ -27,6 +29,7 @@ export class WaterBottleManager {
 
             this.createBottle(x, y, z);
         }
+        this.batch.build(this.bottles);
     }
 
     createBottle(x, y, z) {
@@ -135,13 +138,8 @@ export class WaterBottleManager {
     }
 
     reset() {
-        for (const bottle of this.bottles) {
-            this.scene.remove(bottle.group);
-            bottle.group.traverse((child) => {
-                if (child.geometry) child.geometry.dispose();
-                if (child.material) child.material.dispose();
-            });
-        }
+        this.batch.dispose();
+        disposePickups(this.bottles);
         this.bottles = [];
         this.time = 0;
     }
@@ -149,7 +147,11 @@ export class WaterBottleManager {
     animate(delta) {
         this.time += delta;
         for (const bottle of this.bottles) {
-            if (bottle.collected) continue;
+            if (bottle.collected) {
+                if (!bottle.collectionDone) animateCollection(bottle, delta, 0.3, BOTTLE_SCALE, 0, 3, 0.9);
+                continue;
+            }
+            if (!bottle.group.visible) continue;
             bottle.group.position.y =
                 bottle.baseY + Math.sin(this.time * FLOAT_SPEED + bottle.phaseOffset) * FLOAT_AMPLITUDE;
             bottle.group.rotation.y = this.time * SPIN_SPEED;
@@ -160,10 +162,10 @@ export class WaterBottleManager {
                 bottle.beacon.material.opacity = pulse;
             }
         }
+        this.batch.sync();
     }
 
     update(delta, character, onCollect) {
-        this.animate(delta);
         const characterPos = character.getPosition();
 
         for (let i = this.bottles.length - 1; i >= 0; i--) {
@@ -173,9 +175,7 @@ export class WaterBottleManager {
             // Check collection using 2D (XZ) distance
             const dx = characterPos.x - bottle.group.position.x;
             const dz = characterPos.z - bottle.group.position.z;
-            const distance = Math.sqrt(dx * dx + dz * dz);
-
-            if (distance < COLLECTION_RADIUS) {
+            if (dx * dx + dz * dz < COLLECTION_RADIUS * COLLECTION_RADIUS) {
                 bottle.collected = true;
                 this.collectBottle(bottle, onCollect);
             }
@@ -183,33 +183,7 @@ export class WaterBottleManager {
     }
 
     collectBottle(bottle, onCollect) {
-        const duration = 0.3;
-        let elapsed = 0;
-
-        const animate = () => {
-            elapsed += 0.016;
-            const t = Math.min(elapsed / duration, 1);
-
-            bottle.group.position.y += 0.05;
-            bottle.group.traverse((child) => {
-                if (child.material) {
-                    child.material.transparent = true;
-                    child.material.opacity *= 0.9;
-                }
-            });
-
-            if (t < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                this.scene.remove(bottle.group);
-                this.bottles.splice(this.bottles.indexOf(bottle), 1);
-            }
-        };
-
-        animate();
-
-        if (onCollect) {
-            onCollect(BOOST_DURATION, BOOST_MULTIPLIER);
-        }
+        bottle.collectionAge = 0;
+        if (onCollect) onCollect(BOOST_DURATION, BOOST_MULTIPLIER);
     }
 }

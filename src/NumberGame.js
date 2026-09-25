@@ -1,16 +1,18 @@
 import * as THREE from 'three';
-import { InputManager } from './engine/InputManager.js?v=20260925-gate1';
+import { FixedStep, uiDue } from './engine/FixedStep.js';
+import { quality } from './engine/Quality.js';
+import { InputManager } from './engine/InputManager.js?v=20260925-performance1';
 import { ThirdPersonCamera } from './engine/ThirdPersonCamera.js';
 import { SoundManager } from './engine/SoundManager.js';
 import { ParticleSystem } from './engine/ParticleSystem.js';
-import { NumberRoundManager, NUMBER_STATE } from './engine/NumberRoundManager.js?v=20260925-gate1';
+import { NumberRoundManager, NUMBER_STATE } from './engine/NumberRoundManager.js?v=20260925-performance1';
 import { Character } from './entities/Character.js';
-import { NumberManager } from './entities/NumberManager.js?v=20260925-gate1';
+import { NumberManager } from './entities/NumberManager.js?v=20260925-performance1';
 import { Room } from './world/Room.js';
-import { NumberHUD } from './ui/NumberHUD.js?v=20260925-gate1';
+import { NumberHUD } from './ui/NumberHUD.js?v=20260925-performance1';
 import { MusicManager } from './engine/MusicManager.js';
-import { TouchControls } from './engine/TouchControls.js?v=20260925-gate1';
-import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-gate1';
+import { TouchControls } from './engine/TouchControls.js?v=20260925-performance1';
+import { wellbeingManager } from './engine/WellbeingManager.js?v=20260925-performance1';
 
 const DIGIT_NAMES = {
     0: 'cero',
@@ -31,6 +33,7 @@ export class NumberGame {
         this.canvas = document.getElementById('game-canvas');
         this.renderer = renderer;
         this.clock = new THREE.Clock();
+        this.fixedStep = new FixedStep();
         this.isRunning = false;
         this.initialized = false;
 
@@ -151,10 +154,12 @@ export class NumberGame {
         if (this.initialized) {
             this.isRunning = true;
             this.clock.start();
+            this.fixedStep.reset();
             this.roundManager.restart();
             this.roundManager.startNextRound();
             this.onStateChanged(this.roundManager.state);
             this.previousState = this.roundManager.state;
+            quality.apply(this);
             this.renderer.render(this.scene, this.camera);
             this.loop();
             return;
@@ -171,10 +176,12 @@ export class NumberGame {
         this.initialized = true;
         this.isRunning = true;
         this.clock.start();
+        this.fixedStep.reset();
 
         this.roundManager.startNextRound();
         this.onStateChanged(this.roundManager.state);
         this.previousState = this.roundManager.state;
+        quality.apply(this);
         this.renderer.render(this.scene, this.camera);
 
         if (this.touchControls) this.touchControls.show();
@@ -253,11 +260,18 @@ export class NumberGame {
         if (!this.isRunning) return;
         requestAnimationFrame(() => this.loop());
 
-        if (window.WorldLearning.blocked()) { this.clock.getDelta(); return; }
-        const delta = Math.min(this.clock.getDelta(), 0.05);
+        if (window.WorldLearning.blocked() || document.hidden) {
+            this.clock.getDelta(); this.fixedStep.reset(); return;
+        }
+        this.fixedStep.advance(this.clock.getDelta(), delta => this.step(delta));
+        quality.apply(this);
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    step(delta) {
 
         if (wellbeingManager.tick(delta)) {
-            return;
+            return false;
         }
 
         this.roundManager.update(delta);
@@ -280,7 +294,7 @@ export class NumberGame {
             }
         }
 
-        this.renderer.render(this.scene, this.camera);
+
     }
 
     updateGameplay(delta) {
@@ -306,7 +320,7 @@ export class NumberGame {
             this.particles.emitFruitCollect(token.group.position);
         });
 
-        this.hud.updateEquationDisplay(round, this.roundManager.collectedNumbers);
+        if (uiDue(this, delta)) this.hud.updateEquationDisplay(round, this.roundManager.collectedNumbers);
     }
 
     updateFootsteps(delta) {

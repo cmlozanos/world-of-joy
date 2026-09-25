@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PickupBatch, disposePickups, animateCollection } from '../engine/PickupBatch.js';
 
 const GEM_COUNT = 30;
 const COLLECTION_RADIUS = 2.5;
@@ -19,6 +20,7 @@ const GEM_TYPES = [
 export class GemManager {
     constructor(scene) {
         this.scene = scene;
+        this.batch = new PickupBatch(scene);
         this.gems = [];
         this.time = 0;
     }
@@ -32,6 +34,7 @@ export class GemManager {
             const y = world.getHeightAt(x, z);
             this.createGem(x, y, z);
         }
+        this.batch.build(this.gems);
     }
 
     createGem(x, y, z) {
@@ -142,13 +145,8 @@ export class GemManager {
     }
 
     reset() {
-        for (const gem of this.gems) {
-            this.scene.remove(gem.group);
-            gem.group.traverse((child) => {
-                if (child.geometry) child.geometry.dispose();
-                if (child.material) child.material.dispose();
-            });
-        }
+        this.batch.dispose();
+        disposePickups(this.gems);
         this.gems = [];
         this.time = 0;
     }
@@ -156,7 +154,11 @@ export class GemManager {
     animate(delta) {
         this.time += delta;
         for (const gem of this.gems) {
-            if (gem.collected) continue;
+            if (gem.collected) {
+                if (!gem.collectionDone) animateCollection(gem, delta, 0.5, GEM_SCALE, 0.8, 0, 0.92);
+                continue;
+            }
+            if (!gem.group.visible) continue;
             gem.group.position.y =
                 gem.baseY + Math.sin(this.time * FLOAT_SPEED + gem.phaseOffset) * FLOAT_AMPLITUDE;
             gem.group.rotation.y = this.time * SPIN_SPEED;
@@ -183,10 +185,10 @@ export class GemManager {
                 gem.beaconTop.scale.setScalar(s / 0.1);
             }
         }
+        this.batch.sync();
     }
 
     update(delta, character, onCollect) {
-        this.animate(delta);
         const charPos = character.getPosition();
 
         for (let i = this.gems.length - 1; i >= 0; i--) {
@@ -195,9 +197,7 @@ export class GemManager {
 
             const dx = charPos.x - gem.group.position.x;
             const dz = charPos.z - gem.group.position.z;
-            const distance = Math.sqrt(dx * dx + dz * dz);
-
-            if (distance < COLLECTION_RADIUS) {
+            if (dx * dx + dz * dz < COLLECTION_RADIUS * COLLECTION_RADIUS) {
                 gem.collected = true;
                 this.collectGem(gem, onCollect);
             }
@@ -205,36 +205,7 @@ export class GemManager {
     }
 
     collectGem(gem, onCollect) {
-        const duration = 0.5;
-        let elapsed = 0;
-
-        const animateCollect = () => {
-            elapsed += 0.016;
-            const t = Math.min(elapsed / duration, 1);
-
-            const scale = GEM_SCALE * (1 + t * 0.8);
-            gem.group.scale.set(scale, scale, scale);
-            gem.group.rotation.y += 0.3;
-
-            gem.group.traverse((child) => {
-                if (child.material) {
-                    child.material.transparent = true;
-                    child.material.opacity *= 0.92;
-                }
-            });
-
-            if (t < 1) {
-                requestAnimationFrame(animateCollect);
-            } else {
-                this.scene.remove(gem.group);
-                this.gems.splice(this.gems.indexOf(gem), 1);
-            }
-        };
-
-        animateCollect();
-
-        if (onCollect) {
-            onCollect(gem);
-        }
+        gem.collectionAge = 0;
+        if (onCollect) onCollect(gem);
     }
 }

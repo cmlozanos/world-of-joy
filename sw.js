@@ -1,4 +1,4 @@
-const CACHE_NAME = 'world-of-joy-20260925-gate1';
+const CACHE_NAME = 'world-of-joy-20260925-performance1';
 const PRECACHE_URLS = [
     "./",
     "index.html",
@@ -13,6 +13,9 @@ const PRECACHE_URLS = [
     "src/RacingGame.js",
     "src/WordGame.js",
     "src/engine/InputManager.js",
+    "src/engine/FixedStep.js",
+    "src/engine/PickupBatch.js",
+    "src/engine/Quality.js",
     "src/engine/MusicManager.js",
     "src/engine/NumberRoundManager.js",
     "src/engine/ParticleSystem.js",

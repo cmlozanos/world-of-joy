@@ -605,9 +605,8 @@ export class World {
         for (const collider of this.colliders) {
             const dx = position.x - collider.position.x;
             const dz = position.z - collider.position.z;
-            const distance = Math.sqrt(dx * dx + dz * dz);
-
-            if (distance < radius + collider.radius) {
+            const threshold = radius + collider.radius;
+            if (dx * dx + dz * dz < threshold * threshold) {
                 return true;
             }
         }

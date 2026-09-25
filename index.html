@@ -15,13 +15,14 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <meta name="description" content="¡Explora el mundo abierto, forma palabras, resuelve operaciones y conduce por carretera en el modo racing!">
 
-    <link rel="stylesheet" href="src/styles/main.css?v=20260925-gate1">
+    <link rel="stylesheet" href="src/styles/main.css?v=20260925-performance1">
 </head>
 <body>
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
         <a id="global-home-btn" class="global-home-btn" href="https://cmlozanos.github.io/games/" aria-label="Todos los juegos" title="Todos los juegos">🏠</a>
         <button id="global-sound-btn" type="button" aria-label="Activar sonido" aria-pressed="false" title="Activar sonido">🔇</button>
+        <button id="global-quality-btn" type="button" aria-label="Activar modo ligero" aria-pressed="false" title="Activar modo ligero"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 32 32"><path d="M26 5C10 3 3 12 7 21c4 7 19 5 19-16Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="m5 28 16-16M11 22v-8m0 8h8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button>
         <div id="hud">
             <button id="hud-back-btn" class="sequence-back-btn hud-menu-btn ui-card" type="button" aria-label="Menú del juego" title="Menú del juego">≡</button>
             <div id="fruit-counter" class="hud-card hud-card--compact">
@@ -242,9 +243,9 @@
         }
     }
     </script>
-    <script src="learning-gate.js?v=20260925-gate1"></script>
-    <script src="gate-session.js?v=20260925-gate1"></script>
-    <script type="module" src="src/main.js?v=20260925-gate1"></script>
+    <script src="learning-gate.js?v=20260925-performance1"></script>
+    <script src="gate-session.js?v=20260925-performance1"></script>
+    <script type="module" src="src/main.js?v=20260925-performance1"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).catch(() => {}));

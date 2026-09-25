@@ -68,7 +68,8 @@ body {
     background: linear-gradient(180deg, rgba(25, 36, 54, 0.96), rgba(12, 18, 31, 0.88));
 }
 
-#global-sound-btn {
+#global-sound-btn,
+#global-quality-btn {
     position: absolute;
     top: calc(14px + env(safe-area-inset-top, 0px));
     left: 80px;
@@ -82,6 +83,11 @@ body {
     font-size: 24px;
     cursor: pointer;
 }
+
+#global-quality-btn { left: 144px; }
+#global-quality-btn[aria-pressed="true"] { border-color: #8de0a0; background: #194a36; }
+#global-quality-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.quality-light * { backdrop-filter: none !important; }
 
 #hud {
     position: absolute;
@@ -504,7 +510,7 @@ body {
     min-height: 48px;
     top: calc(14px + env(safe-area-inset-top, 0px));
     bottom: auto;
-    left: 144px;
+    left: 208px;
     width: 48px;
     padding: 0;
 }

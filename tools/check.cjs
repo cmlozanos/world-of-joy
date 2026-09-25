@@ -14,13 +14,18 @@ const handlers={},button={textContent:'',setAttribute:(key,value)=>handlers[key]
 let callbacks,timersPaused=false;
 const learning={createTimers:()=>({pause:()=>timersPaused=true,resume:()=>timersPaused=false}),mount:options=>{callbacks=options;options.onLock();return{check:()=>{}};}};
 const windowMock={LearningGate:learning};
-vm.runInNewContext(fs.readFileSync(path.join(root,'gate-session.js'),'utf8'),{window:windowMock,LearningGate:learning,document:{getElementById:()=>button}});
+const documentMock={hidden:false,getElementById:()=>button,addEventListener:(name,fn)=>handlers[name]=fn};
+vm.runInNewContext(fs.readFileSync(path.join(root,'gate-session.js'),'utf8'),{window:windowMock,LearningGate:learning,document:documentMock});
 const audio={state:'running',suspend(){this.state='suspended';return Promise.resolve();},resume(){this.state='running';return Promise.resolve();}};
 const sample={isRunning:true,input:{keys:{ArrowUp:true},setVirtualTurnAxis(value){this.axis=value;}},sound:{getAudioContext:()=>audio,cancelSpeech:()=>{}},clock:{getDelta:()=>0}};
 windowMock.WorldLearning.attach(sample);assert.equal(audio.state,'suspended');assert.equal(Object.keys(sample.input.keys).length,0);assert.equal(timersPaused,true);
 callbacks.onUnlock();assert.equal(audio.state,'suspended','sound remains OFF after first challenge');assert.equal(timersPaused,false);
 handlers.click();assert.equal(audio.state,'running');callbacks.onLock();assert.equal(audio.state,'suspended');assert.equal(timersPaused,true);
 callbacks.onUnlock();assert.equal(audio.state,'running','enabled audio resumes');audio.state='suspended';callbacks.onLock();callbacks.onUnlock();assert.equal(audio.state,'suspended','manually suspended audio remains suspended');
+audio.state='running';documentMock.hidden=true;handlers.visibilitychange();assert.equal(audio.state,'suspended','hidden audio suspended');
+callbacks.onLock();callbacks.onUnlock();assert.equal(audio.state,'suspended','unlock while hidden must not play');
+documentMock.hidden=false;handlers.visibilitychange();assert.equal(audio.state,'running','visible resumes enabled audio');
+audio.state='suspended';documentMock.hidden=true;handlers.visibilitychange();documentMock.hidden=false;handlers.visibilitychange();assert.equal(audio.state,'suspended','visibility preserves manual audio pause');
 for(const file of ['main','WordGame','NumberGame','RacingGame']){
  const source=fs.readFileSync(path.join(root,'src',file+'.js'),'utf8');
  assert.match(source,/WorldLearning\.attach\(this\)/);assert.match(source,/WorldLearning\.blocked\(\)/);

@@ -3,6 +3,7 @@ node_modules/
 tools/*
 !tools/check.cjs
 !tools/check-browser.cjs
+!tools/check-performance.cjs
 !tools/icons.cjs
 
 # OS files

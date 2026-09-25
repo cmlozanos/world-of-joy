@@ -186,8 +186,9 @@ export class Character {
             this.velocity.z = moveDirection.z * speed;
             this.state = isRunning ? STATE.RUNNING : STATE.WALKING;
         } else {
-            this.velocity.x *= 0.85;
-            this.velocity.z *= 0.85;
+            const friction = Math.pow(0.85, delta * 60);
+            this.velocity.x *= friction;
+            this.velocity.z *= friction;
             if (Math.abs(this.velocity.x) < 0.1 && Math.abs(this.velocity.z) < 0.1) {
                 this.velocity.x = 0;
                 this.velocity.z = 0;

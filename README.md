@@ -136,3 +136,15 @@ The persistent home icon opens https://cmlozanos.github.io/games/; each mode ret
 `make check` checks syntax, gate integration, complete offline assets and cache isolation. Run `make install-tests` once, then `make check-browser` for real Chromium checks; optionally provide `CHROME95_PATH` to check the legacy executable. Test dependencies and lockfile belong to this project. The compatibility target is Chrome 95 with WebGL available; actual Android GPU performance requires device testing.
 
 `make icons` regenerates the 192/512px PNG installation icons from the original SVG artwork. `WORLD_PHONE=1 make check-browser` exercises the narrow phone layout; `WORLD_SCREENSHOT_DIR=/absolute/output/directory` saves screenshots for visual inspection. The narrow layout separates educational words/equations from navigation buttons and allows the mode menu to scroll on short screens.
+
+## Performance on older tablets
+
+The leaf-icon button switches between normal and light graphics, and remembers the choice locally. Normal remains the default. Light mode disables real-time shadows, decorative point lights and interface blur, and caps rendering at one device pixel per CSS pixel. Both modes retain the same missions, object counts, collisions and controls; sound still starts OFF. The icon is an inline vector, not an emoji requiring a recent Android font.
+
+At device pixel ratio 1, both modes render the same number of pixels; light mode saves shadow/lighting/blur work, not resolution. Enabled audio and speech pause when the document is hidden and resume only if their prior state, the educational gate and the sound preference allow it.
+
+All four modes simulate physics at 60 fixed steps per second, independently of drawing at 10/15/20/30/60 FPS. A frame can catch up at most 250 ms; educational locks, hidden documents and mode restarts discard pending time rather than advancing the game behind a pause. Fruit, bottle and gem parts use instanced batches; invisible pickups submit zero instances, but collection still depends on their real position. HUD/minimap polling runs at 10 Hz and collection feedback remains immediate.
+
+`make check-performance` tests real character/car movement, jumps and fuel at those display rates, time-based friction, pause/catch-up limits, unchanged pickup quantities, batch-count budgets, invisible-instance culling, collection and resource disposal across rounds. `make check-browser` additionally exercises both graphics qualities, shader errors and persisted preferences through an offline reload. These checks do not substitute for a performance measurement on the physical Android tablet.
+
+`make measure-render` samples Three.js draw-call/triangle counters for exploration in normal and light modes with an Android user agent, DPR 1 and a normally randomized world. It supports `CHROME95_PATH` and `WORLD_SCREENSHOT_DIR` too; these counters describe the scene, not the tablet's FPS. With `?test=1`, `__worldRenderRead()` exposes the same read-only counters for diagnostics.

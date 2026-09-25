@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PickupBatch, disposePickups, animateCollection } from '../engine/PickupBatch.js';
 
 const COLLECTION_RADIUS = 3.0;
 const FRUIT_FLOAT_HEIGHT = 1.5;
@@ -21,6 +22,7 @@ const FRUIT_TYPES = [
 export class FruitManager {
     constructor(scene) {
         this.scene = scene;
+        this.batch = new PickupBatch(scene);
         this.fruits = [];
         this.totalFruits = 0;
         this.time = 0;
@@ -29,6 +31,7 @@ export class FruitManager {
         this.leafGeometry = new THREE.PlaneGeometry(0.1, 0.08);
         this.ringGeometry = new THREE.TorusGeometry(1, 0.02, 6, 12);
         this.beaconGeometry = new THREE.CylinderGeometry(0.04, 0.15, BEACON_HEIGHT, 6);
+        this.beaconTopGeometry = new THREE.SphereGeometry(0.12, 8, 8);
     }
 
     getTotalFruits() {
@@ -53,6 +56,7 @@ export class FruitManager {
                 this.createFruit(x, y, z);
             }
         }
+        this.batch.build(this.fruits);
     }
 
     createFruit(x, y, z) {
@@ -96,7 +100,7 @@ export class FruitManager {
         group.add(beacon);
 
         // Beacon top glow sphere
-        const beaconTopGeo = new THREE.SphereGeometry(0.12, 8, 8);
+        const beaconTopGeo = this.beaconTopGeometry;
         const beaconTopMat = new THREE.MeshBasicMaterial({
             color: type.color,
             transparent: true,
@@ -143,21 +147,21 @@ export class FruitManager {
     }
 
     reset() {
-        for (const fruit of this.fruits) {
-            this.scene.remove(fruit.group);
-            fruit.group.traverse((child) => {
-                if (child.material) child.material.dispose();
-            });
-        }
+        this.batch.dispose();
+        disposePickups(this.fruits);
         this.fruits = [];
-        this.totalFruits = 0;
         this.time = 0;
+        this.totalFruits = 0;
     }
 
     animate(delta) {
         this.time += delta;
         for (const fruit of this.fruits) {
-            if (fruit.collected) continue;
+            if (fruit.collected) {
+                if (!fruit.collectionDone) animateCollection(fruit, delta, 0.4, FRUIT_SCALE, 0.5, 0, 0);
+                continue;
+            }
+            if (!fruit.group.visible) continue;
             fruit.group.position.y =
                 fruit.baseY +
                 Math.sin(this.time * FRUIT_BOUNCE_SPEED + fruit.phaseOffset) * FRUIT_BOUNCE_AMPLITUDE;
@@ -172,10 +176,10 @@ export class FruitManager {
                 fruit.beaconTop.scale.setScalar(s / 0.12);
             }
         }
+        this.batch.sync();
     }
 
     update(delta, character, onCollect) {
-        this.animate(delta);
         const characterPos = character.getPosition();
 
         for (let i = this.fruits.length - 1; i >= 0; i--) {
@@ -185,9 +189,7 @@ export class FruitManager {
             // Check collection using 2D (XZ) distance only
             const dx = characterPos.x - fruit.group.position.x;
             const dz = characterPos.z - fruit.group.position.z;
-            const distance = Math.sqrt(dx * dx + dz * dz);
-
-            if (distance < COLLECTION_RADIUS) {
+            if (dx * dx + dz * dz < COLLECTION_RADIUS * COLLECTION_RADIUS) {
                 fruit.collected = true;
                 this.collectFruit(fruit, onCollect);
             }
@@ -195,35 +197,7 @@ export class FruitManager {
     }
 
     collectFruit(fruit, onCollect) {
-        const duration = 0.4;
-        let elapsed = 0;
-
-        const animate = () => {
-            elapsed += 0.016;
-            const t = Math.min(elapsed / duration, 1);
-
-            const scale = FRUIT_SCALE * (1 + t * 0.5);
-            fruit.group.scale.set(scale, scale, scale);
-
-            fruit.group.traverse((child) => {
-                if (child.material) {
-                    child.material.transparent = true;
-                    child.material.opacity = 1 - t;
-                }
-            });
-
-            if (t < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                this.scene.remove(fruit.group);
-                this.fruits.splice(this.fruits.indexOf(fruit), 1);
-            }
-        };
-
-        animate();
-
-        if (onCollect) {
-            onCollect(fruit);
-        }
+        fruit.collectionAge = 0;
+        if (onCollect) onCollect(fruit);
     }
 }
