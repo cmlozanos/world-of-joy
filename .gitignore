@@ -4,6 +4,7 @@ tools/*
 !tools/check.cjs
 !tools/check-browser.cjs
 !tools/touch-check.cjs
+!tools/sync-learning-gate.mjs
 !tools/check-performance.cjs
 !tools/icons.cjs
 
