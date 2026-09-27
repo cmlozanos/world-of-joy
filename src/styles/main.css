@@ -4,6 +4,21 @@
     box-sizing: border-box;
 }
 
+/* Game surfaces do not offer text selection or native touch callouts. */
+body, canvas, button, a, img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+input, textarea, select,
+[contenteditable]:not([contenteditable="false"]),
+[contenteditable]:not([contenteditable="false"]) * {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 body {
     overflow: hidden;
     background: #000;

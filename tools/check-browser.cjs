@@ -1,5 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const {chromium}=require('@playwright/test');
+const {checkTouchUI}=require('./touch-check.cjs');
 const root=path.resolve(__dirname,'..');
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.json':'application/json'};
 async function solve(page){const value=await page.locator('#gate-prompt').textContent(),m=value.match(/(\d)\s*([+−-])\s*(\d)/);assert.ok(m);const answer=m[2]==='+'?+m[1]+ +m[3]:+m[1]- +m[3];await page.locator('[data-gate-key="'+answer+'"]').click();await page.waitForSelector('#learning-gate',{state:'detached'});}
@@ -38,6 +39,7 @@ async function solve(page){const value=await page.locator('#gate-prompt').textCo
    assert.deepEqual(errors,[]);return;
   }
   assert.equal(await page.locator('#global-home-btn').getAttribute('href'),'https://cmlozanos.github.io/games/');
+  await checkTouchUI(page, '#global-home-btn');
   assert.equal(await page.locator('#global-sound-btn').getAttribute('aria-pressed'),'false');
   assert.equal(await page.locator('#global-quality-btn').getAttribute('aria-pressed'),'true','first-run default is light');
   assert.equal(await page.evaluate(()=>__worldRenderRead().light),true);
@@ -79,8 +81,12 @@ async function solve(page){const value=await page.locator('#gate-prompt').textCo
     touch=await context.newCDPSession(page);const box=await page.locator('#joystick-base:visible').first().boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
     const touchBefore=await page.evaluate(()=>__worldRead().find(g=>g.running).position);
     await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
-    await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-50,id:1}]});await page.waitForTimeout(250);
+    await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-50,id:1}]});await page.waitForTimeout(800);
     assert.notDeepEqual(await page.evaluate(()=>__worldRead().find(g=>g.running).position),touchBefore,'native joystick moves explorer');
+    await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    assert.equal(await page.evaluate(()=>__worldRead().some(g=>Object.values(g.keys).some(Boolean))),false,'long hold releases joystick');
+    await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
+    await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-50,id:1}]});
    }
    await page.evaluate(()=>{window.testOffset+=600001;window.dispatchEvent(new Event('focus'));});await page.waitForSelector('#learning-gate');
    if(touch){await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await touch.detach();assert.equal(await page.evaluate(()=>__worldRead().some(g=>Object.values(g.keys).some(Boolean))),false,'held controls cleared');}

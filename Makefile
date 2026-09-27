@@ -21,7 +21,7 @@ check-performance:
 measure-render:
 	WORLD_RENDER_ONLY=1 node tools/check-browser.cjs
 
-## check-browser: Test all four modes with real input, pause, gate, home and offline
+## check-browser: Test four modes, touch-check.cjs, long hold/release, pause, gate, home and offline
 check-browser:
 	node tools/check-browser.cjs
 

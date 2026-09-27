@@ -27,6 +27,17 @@ import { WordGame } from './WordGame.js?v=20260925-performance2';
 import { RacingGame } from './RacingGame.js?v=20260925-performance2';
 import { NumberGame } from './NumberGame.js?v=20260925-performance2';
 
+// Keep native long-press menus off game UI without cancelling touch gestures.
+let lastGameTouch = -Infinity;
+document.addEventListener('touchstart', () => { lastGameTouch = Date.now(); }, { capture: true, passive: true });
+document.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'touch') lastGameTouch = Date.now();
+}, { capture: true, passive: true });
+document.addEventListener('contextmenu', event => {
+    if (event.target instanceof Element && event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"])')) return;
+    if (event.pointerType === 'touch' || Date.now() - lastGameTouch < 2000) event.preventDefault();
+}, { capture: true });
+
 const COMPASS_LABELS = {
     [MISSION_TYPE.FRUIT_RUSH]: '\u{1F34E} Fruta m\u00e1s cercana',
     [MISSION_TYPE.BOUNCE_QUEST]: '\u{1F539} Trampol\u00edn m\u00e1s cercano',

@@ -148,3 +148,9 @@ All four modes simulate physics at 60 fixed steps per second, independently of d
 `make check-performance` tests real character/car movement, jumps and fuel at those display rates, time-based friction, pause/catch-up limits, unchanged pickup quantities, batch-count budgets, invisible-instance culling, collection and resource disposal across rounds. `make check-browser` additionally exercises both graphics qualities, shader errors and persisted preferences through an offline reload. These checks do not substitute for a performance measurement on the physical Android tablet.
 
 `make measure-render` samples Three.js draw-call/triangle counters for exploration in normal and light modes with an Android user agent, DPR 1 and a normally randomized world. It supports `CHROME95_PATH` and `WORLD_SCREENSHOT_DIR` too; these counters describe the scene, not the tablet's FPS. With `?test=1`, `__worldRenderRead()` exposes the same read-only counters for diagnostics.
+
+## Touch holds — 20260927-2
+
+Game UI suppresses touch context menus, callouts and selection while editable fields retain text selection and editing. Context suppression applies only to touch events or the following two seconds; global touch gestures are not cancelled.
+
+`make check-browser` includes `tools/touch-check.cjs`, keyboard input and an 800 ms native-emulated joystick hold/release. `CHROME95_PATH` selects an installed legacy browser. Physical-tablet native menu behavior still needs device validation.
