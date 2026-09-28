@@ -1,5 +1,10 @@
 # World of Joy 🌳
 
+The tablet profile in Games selects any combination of addition, subtraction,
+tracing and reading, with at least one active challenge type. All four modes honour
+that selection at entry and every ten minutes. Missing or invalid profiles keep
+the default challenges without changing sound preferences or gameplay.
+
 A 3D browser game built with Three.js featuring four modes: open-world exploration, word building, number operations, and road racing.
 
 ## Getting Started

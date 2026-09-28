@@ -1,4 +1,4 @@
-const CACHE_NAME = 'world-of-joy-20260928-1';
+const CACHE_NAME = 'world-of-joy-20260928-4';
 const PRECACHE_URLS = [
     "./",
     "index.html",
