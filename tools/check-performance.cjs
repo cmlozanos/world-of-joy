@@ -44,6 +44,15 @@ const load = async file => import(await moduleURL(path.join(root, file)));
         for (const fps of [10, 15, 20, 30, 60]) assert.deepEqual(run(Class, fps), reference, Class.name + ' at ' + fps + ' FPS');
         console.log(Class.name + ': identical movement/jump/time/fuel at 10/15/20/30/60 FPS');
     }
+    const emptyCar = new RacingCar(new THREE.Scene());
+    emptyCar.configureFuel(0);
+    for (let i=0;i<120;i++) emptyCar.update(1/60, {...input, forward:false, backward:true}, world);
+    assert.equal(emptyCar.speed, 0, 'empty fuel cannot power reverse');
+    const sliding = new Character(new THREE.Scene());
+    sliding.velocity.set(3, 0, 3);
+    sliding.updatePhysics(1/60, {...world, checkCollision:p=>p.x>0.01 && p.z>0.01});
+    assert.ok(sliding.getPosition().x>0 || sliding.getPosition().z>0, 'diagonal contact slides instead of trapping');
+    console.log('Mechanics: empty reverse stops; diagonal tree collision allows escape.');
     const friction = fps => {
         const entity = new Character(new THREE.Scene()); entity.velocity.x = 20;
         for (let i = 0; i < fps / 2; i++) entity.updateMovement(1 / fps, {...input, forward: false, isMoving: false, jump: false});

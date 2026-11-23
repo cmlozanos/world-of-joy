@@ -212,6 +212,7 @@ export class WordGame {
                 break;
 
             case WORD_STATE.ROUND_COMPLETE:
+                window.FamilyV2.award('word-' + this.roundManager.currentRoundIndex, 3);
                 if (this.touchControls) this.touchControls.hide();
                 this.hud.showRoundComplete(
                     this.roundManager.getLastRoundStars(),

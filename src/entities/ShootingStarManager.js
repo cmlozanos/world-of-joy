@@ -190,9 +190,11 @@ export class ShootingStarManager {
         this.spawnTimer -= delta;
         const activeCount = this.stars.filter((s) => !s.collected && s.state !== 'expired').length;
         if (this.spawnTimer <= 0 && activeCount < MAX_ACTIVE_STARS) {
-            const bounds = this.world.getWorldBounds() - 30;
-            const x = (Math.random() - 0.5) * 2 * bounds;
-            const z = (Math.random() - 0.5) * 2 * bounds;
+            const bounds = this.world.getWorldBounds() - 10;
+            const origin = character.getPosition();
+            const angle = Math.random() * Math.PI * 2;
+            const x = THREE.MathUtils.clamp(origin.x + Math.cos(angle) * 12, -bounds, bounds);
+            const z = THREE.MathUtils.clamp(origin.z + Math.sin(angle) * 12, -bounds, bounds);
             this.createStar(x, z);
             this.spawnTimer = SPAWN_INTERVAL_MIN + Math.random() * (SPAWN_INTERVAL_MAX - SPAWN_INTERVAL_MIN);
         }

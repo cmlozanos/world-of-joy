@@ -243,7 +243,7 @@ export class World {
             const x = (Math.random() - 0.5) * 2 * halfWorld;
             const z = (Math.random() - 0.5) * 2 * halfWorld;
 
-            if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
+            if (Math.abs(x) < 5 && z > -5 && z < 78) continue;
             if (this.isNearRoad(x, z, ROAD_CLEARANCE + roadPadding)) continue;
 
             const y = this.getHeightAt(x, z);

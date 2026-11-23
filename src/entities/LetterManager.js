@@ -137,7 +137,7 @@ export class LetterManager {
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, 128, 128);
         ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
-        ctx.font = 'bold 100px Arial';
+        ctx.font = `400 100px "${window.FamilyV2.fontFamily}"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(char, 64, 68);

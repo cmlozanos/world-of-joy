@@ -223,6 +223,7 @@ export class NumberGame {
                 break;
 
             case NUMBER_STATE.ROUND_COMPLETE:
+                window.FamilyV2.award('number-' + this.roundManager.currentRoundIndex, 3);
                 if (this.touchControls) this.touchControls.hide();
                 this.hud.showRoundComplete(
                     this.roundManager.getLastRoundStars(),

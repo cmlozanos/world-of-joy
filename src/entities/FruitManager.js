@@ -59,6 +59,20 @@ export class FruitManager {
         this.batch.build(this.fruits);
     }
 
+    arrangeTrail(count, world) {
+        // Keep the world's existing fruit count; make each timed fruit mission start nearby.
+        let placed = 0;
+        for (let distance = 6; placed < count && distance <= 72; distance += 4) {
+            const position = new THREE.Vector3(0, 0, distance);
+            if (world.checkCollision(position, 2)) continue;
+            const fruit = this.fruits[placed++];
+            if (!fruit) break;
+            fruit.baseY = world.getHeightAt(position.x, position.z) + FRUIT_FLOAT_HEIGHT;
+            fruit.group.position.set(position.x, fruit.baseY, position.z);
+        }
+        this.batch.sync();
+    }
+
     createFruit(x, y, z) {
         const type = FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];
         const group = new THREE.Group();

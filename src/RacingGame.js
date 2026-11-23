@@ -30,6 +30,23 @@ export class RacingGame {
         this.onBack = onBack;
         this.canvas = document.getElementById('game-canvas');
         this.renderer = renderer;
+        document.getElementById('recover-btn').addEventListener('click', () => {
+            if (!this.isRunning || window.WorldLearning.blocked()) return;
+            const position = this.car.getPosition();
+            let nearest = 0;
+            for (let i = 1; i < this.routePreviewPoints.length; i++) {
+                if (position.distanceToSquared(this.routePreviewPoints[i]) < position.distanceToSquared(this.routePreviewPoints[nearest])) nearest = i;
+            }
+            const target = this.routePreviewPoints[nearest];
+            const next = this.routePreviewPoints[Math.min(nearest + 1, this.routePreviewPoints.length - 1)];
+            const tangent = next.clone().sub(target).normalize();
+            if (!tangent.lengthSq()) tangent.copy(this.world.getRoadPoint(this.roundManager.getCurrentRound().finishProgress).tangent);
+            this.car.setSpawn(target, tangent);
+            this.routeWaypoint = nearest;
+            this.input.keys = {};
+            if (this.touchControls) this.touchControls.resetAllInputs();
+            this.cameraController.reset();
+        });
         this.clock = new THREE.Clock();
         this.fixedStep = new FixedStep();
         this.boostUi = {};
@@ -37,7 +54,9 @@ export class RacingGame {
         this.initialized = false;
         this.routePreviewPoints = [];
         this.previousState = RACE_STATE.IDLE;
+        document.getElementById('recover-btn').textContent = 'Volver al camino';
         this.didReachFinish = false;
+        this.routeWaypoint = 0;
         this.lessonAnnouncementCooldown = 0;
         this.lessonDiscoveryCount = 0;
 
@@ -267,6 +286,7 @@ export class RacingGame {
                 break;
 
             case RACE_STATE.ROUND_COMPLETE:
+                window.FamilyV2.award('race-' + this.roundManager.currentRoundIndex, 3);
                 if (this.touchControls) this.touchControls.hide();
                 this.sound.playFinish();
                 this.hud.showRoundComplete(
@@ -308,7 +328,9 @@ export class RacingGame {
     }
 
     setupRound(round) {
+        document.getElementById('recover-btn').textContent = 'Volver al camino';
         this.didReachFinish = false;
+        this.routeWaypoint = 0;
         this.lessonAnnouncementCooldown = 0;
         this.lessonDiscoveryCount = 0;
         this.hud.resetForNewRound();
@@ -440,6 +462,10 @@ export class RacingGame {
         this.lessonAnnouncementCooldown = Math.max(0, this.lessonAnnouncementCooldown - delta);
 
         this.car.update(delta, this.input, this.world);
+        // Keep the route guidance on the next road segment, not through the countryside.
+        while (this.routeWaypoint < this.routePreviewPoints.length - 1 &&
+            this.car.getPosition().distanceTo(this.routePreviewPoints[this.routeWaypoint]) < 12) this.routeWaypoint++;
+
         this.cameraController.update(delta, this.input);
 
         if (this.car.isMoving()) {
@@ -520,7 +546,7 @@ export class RacingGame {
             this.routePreviewPoints
         );
 
-        this.compass.update(this.car, finishPosition ? [finishPosition] : []);
+        this.compass.update(this.car, this.routePreviewPoints[this.routeWaypoint] ? [this.routePreviewPoints[this.routeWaypoint]] : []);
     }
 
     updateShadowCamera() {

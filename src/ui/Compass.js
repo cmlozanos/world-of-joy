@@ -43,7 +43,7 @@ export class Compass {
         if (!nearestPos) {
             const pulse = 0.7 + Math.sin(this.time * 3) * 0.3;
             ctx.fillStyle = `rgba(76, 175, 80, ${pulse})`;
-            ctx.font = 'bold 14px sans-serif';
+            ctx.font = `400 14px "${window.FamilyV2.fontFamily}"`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('\u00a1Listo!', half, half);
@@ -59,7 +59,7 @@ export class Compass {
 
         ctx.save();
         ctx.translate(half, half);
-        ctx.rotate(relativeAngle);
+        ctx.rotate(-relativeAngle);
 
         const arrowLen = half - 14;
         ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`;
@@ -85,7 +85,7 @@ export class Compass {
 
         const distText = `${Math.round(minDist)}m`;
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px sans-serif';
+        ctx.font = `400 12px "${window.FamilyV2.fontFamily}"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(distText, half, this.size - 3);

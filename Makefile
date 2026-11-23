@@ -61,3 +61,5 @@ help:
 	@grep -E '^##' Makefile | sed 's/## //' | column -t -s ':'
 	@echo ""
 	@echo "Usage: make [command] [PORT=9999]"
+
+# tools/family-check.cjs is exercised by make check-browser (pause, points, fonts and adult settings).

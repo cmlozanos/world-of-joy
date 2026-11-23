@@ -13,11 +13,13 @@ for(const icon of manifest.icons){const png=fs.readFileSync(path.join(root,icon.
 const handlers={},button={textContent:'',setAttribute:(key,value)=>handlers[key]=value,getAttribute:key=>handlers[key],addEventListener:(key,fn)=>handlers[key]=fn};
 let callbacks,timersPaused=false;
 const learning={createTimers:()=>({pause:()=>timersPaused=true,resume:()=>timersPaused=false}),mount:options=>{callbacks=options;options.onLock();return{check:()=>{}};}};
-const windowMock={LearningGate:learning};
+let familyCallbacks;
+const windowMock={LearningGate:learning,FamilyV2:{register:options=>familyCallbacks=options}};
 const documentMock={hidden:false,getElementById:()=>button,addEventListener:(name,fn)=>handlers[name]=fn};
 vm.runInNewContext(fs.readFileSync(path.join(root,'gate-session.js'),'utf8'),{window:windowMock,LearningGate:learning,document:documentMock});
 const audio={state:'running',suspend(){this.state='suspended';return Promise.resolve();},resume(){this.state='running';return Promise.resolve();}};
 const sample={isRunning:true,input:{keys:{ArrowUp:true},setVirtualTurnAxis(value){this.axis=value;}},sound:{getAudioContext:()=>audio,cancelSpeech:()=>{}},clock:{getDelta:()=>0}};
+handlers.DOMContentLoaded();
 windowMock.WorldLearning.attach(sample);assert.equal(audio.state,'suspended');assert.equal(Object.keys(sample.input.keys).length,0);assert.equal(timersPaused,true);
 callbacks.onUnlock();assert.equal(audio.state,'suspended','sound remains OFF after first challenge');assert.equal(timersPaused,false);
 handlers.click();assert.equal(audio.state,'running');callbacks.onLock();assert.equal(audio.state,'suspended');assert.equal(timersPaused,true);
@@ -26,6 +28,10 @@ audio.state='running';documentMock.hidden=true;handlers.visibilitychange();asser
 callbacks.onLock();callbacks.onUnlock();assert.equal(audio.state,'suspended','unlock while hidden must not play');
 documentMock.hidden=false;handlers.visibilitychange();assert.equal(audio.state,'running','visible resumes enabled audio');
 audio.state='suspended';documentMock.hidden=true;handlers.visibilitychange();documentMock.hidden=false;handlers.visibilitychange();assert.equal(audio.state,'suspended','visibility preserves manual audio pause');
+audio.state='running';familyCallbacks.pause();assert.equal(audio.state,'suspended');
+callbacks.onLock();familyCallbacks.resume();assert.equal(audio.state,'suspended','home/adult cannot bypass education lock');
+callbacks.onUnlock();assert.equal(audio.state,'running','overlapping locks restore enabled audio once');
+audio.state='suspended';familyCallbacks.pause();familyCallbacks.resume();assert.equal(audio.state,'suspended','family respects manual suspension');
 for(const file of ['main','WordGame','NumberGame','RacingGame']){
  const source=fs.readFileSync(path.join(root,'src',file+'.js'),'utf8');
  assert.match(source,/WorldLearning\.attach\(this\)/);assert.match(source,/WorldLearning\.blocked\(\)/);
@@ -40,3 +46,6 @@ for(const file of files('src').filter(f=>/\.(js|css)$/.test(f)))assert.ok(assets
 assert.ok(assets.includes('vendor/three.module.js'));assert.ok(assets.includes('learning-gate.js'));assert.ok(assets.includes('gate-session.js'));
 let activation;listeners.activate({waitUntil:p=>activation=p});
 activation.then(()=>{assert.deepEqual(deleted,['world-of-joy-old']);console.log('World of Joy: four gated modes, syntax, local assets, 10-minute gate, preserved wellbeing and isolated caches verified.');}).catch(error=>{console.error(error);process.exitCode=1;});
+
+assert.deepEqual(fs.readdirSync(path.join(root,'family-v2')).sort(),['OFL.txt','family.css','family.js','playwrite-es.ttf']);
+assert.match(html,/defer src="family-v2\/family.js\?v=2.0.0" data-game="world-of-joy"/);

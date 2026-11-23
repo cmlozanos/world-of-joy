@@ -136,7 +136,7 @@ world-of-joy/
 
 The existing four modes are preserved. A local educational challenge is required at entry and after every ten minutes, including offline PWA launches. Game physics, round clocks, pending messages, held touch/keyboard inputs and audio pause during the challenge. The existing twelve-minute wellbeing break remains independent and unchanged.
 
-The persistent home icon opens https://cmlozanos.github.io/games/; each mode retains its separate internal menu button. Sound starts OFF and can be enabled with the speaker icon. The service worker precaches all four modes and local Three.js and only removes this game's obsolete caches. No Ubuntu server or online dependency is needed after installation.
+The persistent Home button returns to the same-game menu in every mode; the catalogue is available inside Adult settings. Sound starts OFF and can be enabled with the speaker icon. The service worker precaches all four modes and local Three.js and only removes this game's obsolete caches. No Ubuntu server or online dependency is needed after installation.
 
 `make check` checks syntax, gate integration, complete offline assets and cache isolation. Run `make install-tests` once, then `make check-browser` for real Chromium checks; optionally provide `CHROME95_PATH` to check the legacy executable. Test dependencies and lockfile belong to this project. The compatibility target is Chrome 95 with WebGL available; actual Android GPU performance requires device testing.
 
@@ -159,3 +159,44 @@ All four modes simulate physics at 60 fixed steps per second, independently of d
 Game UI suppresses touch context menus, callouts and selection while editable fields retain text selection and editing. Context suppression applies only to touch events or the following two seconds; global touch gestures are not cancelled.
 
 `make check-browser` includes `tools/touch-check.cjs`, keyboard input and an 800 ms native-emulated joystick hold/release. `CHROME95_PATH` selects an installed legacy browser. Physical-tablet native menu behavior still needs device validation.
+
+## Family 2.0.0
+
+The local `family-v2/` copy contains exactly the CSS, classic JavaScript,
+Playwrite ES font and OFL license. Its measured viewport height drives the game
+layout. DOM text and game-owned canvas labels use the loaded local font; no
+canvas API is patched. The header owns Home, points and Adult settings. Native
+sound/quality buttons are moved intact into the adult slot, preserving handlers.
+Sound starts OFF on every load without deleting existing preferences/progress.
+Light rendering remains the default; explicit graphics preferences survive.
+Antialiasing is disabled at context creation and physics remain fixed-step.
+The pause adapter freezes actual simulation, pending game timers and audio;
+closing Adult settings cannot bypass the independent educational lock.
+Home stops the current game and opens its own menu without changing the URL.
+The service worker uses a game-scoped 2.0.0 cache including all four kit files.
+
+### Gameplay fixes and evidence
+
+Timed fruit missions now begin with a collision-free nearby trail using existing
+fruit objects; bottle and gem missions also place their required targets nearby.
+No pickup counts, worlds or modes were removed. Falling stars spawn within 12 m
+of the player rather than across the entire 600 m map. A recovery button returns
+the explorer to the start or the car to the nearest route segment, without
+resetting mission time, fuel or score. Diagonal tree contacts slide along the free
+axis instead of trapping both axes. The compass canvas rotation sign is fixed;
+racing guidance follows road waypoints instead of pointing through the terrain.
+An empty tank can no longer power unlimited reverse movement.
+
+Validation: `make check check-performance` passes syntax, isolated complete
+caches, pause/gate overlap, manually suspended audio, fixed-step movement and
+fuel at 10/15/20/30/60 FPS, collision escape and pickup/render-batch budgets.
+`make check-browser` passes movement, touch hold/release, Adult pause, education
+lock, sound, same-URL Home and offline reload for all four modes. Its test-server
+instrumentation applies inputs to production simulation (not teleportation or
+forced victory): first exploration mission reaches 8/8 and all six Racing rounds reach
+ROUND_COMPLETE. Recovery preserves round/time/fuel. Menu bounds and no page scroll
+are checked at 360×640, 640×360 and 1024×768. World generation uses normal randomness, not the arithmetic
+challenge fixture. `make measure-render` observed 147 calls / 217,568 triangles
+at DPR 1 in both qualities; light disables shadows, not scene content.
+Phone menu and gameplay screenshots were visually inspected. These desktop
+Chromium observations do not certify Chrome 95 or physical Android GPU speed.

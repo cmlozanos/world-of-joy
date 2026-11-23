@@ -107,7 +107,7 @@ export class RaceMarkerManager {
         ctx.fillStyle = `#${bgHex.toString(16).padStart(6, '0')}`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = `#${colorHex.toString(16).padStart(6, '0')}`;
-        ctx.font = 'bold 72px Arial';
+        ctx.font = `400 72px "${window.FamilyV2.fontFamily}"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 4);

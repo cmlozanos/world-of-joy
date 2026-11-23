@@ -93,13 +93,13 @@ export class RoadSignManager {
         ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
 
         ctx.fillStyle = color;
-        ctx.font = 'bold 108px Arial';
+        ctx.font = `400 108px "${window.FamilyV2.fontFamily}"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(template.icon, canvas.width / 2, 98);
 
         ctx.fillStyle = '#15314a';
-        ctx.font = 'bold 36px Arial';
+        ctx.font = `400 36px "${window.FamilyV2.fontFamily}"`;
         ctx.fillText(template.label, canvas.width / 2, 192);
 
         const texture = new THREE.CanvasTexture(canvas);

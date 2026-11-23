@@ -137,7 +137,7 @@ export class NumberManager {
         ctx.fillStyle = '#111111';
         ctx.fillRect(0, 0, 128, 128);
         ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
-        ctx.font = 'bold 102px Arial';
+        ctx.font = `400 102px "${window.FamilyV2.fontFamily}"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(value, 64, 70);

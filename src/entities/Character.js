@@ -235,8 +235,13 @@ export class Character {
         if (!world.checkCollision(newPos, 0.5)) {
             this.group.position.copy(newPos);
         } else {
-            this.velocity.x = 0;
-            this.velocity.z = 0;
+            // Slide along a trunk instead of cancelling both axes and trapping forward input.
+            const slideX = this.group.position.clone().setX(newPos.x);
+            const slideZ = this.group.position.clone().setZ(newPos.z);
+            if (!world.checkCollision(slideX, 0.5)) this.group.position.x = newPos.x;
+            else this.velocity.x = 0;
+            if (!world.checkCollision(slideZ, 0.5)) this.group.position.z = newPos.z;
+            else this.velocity.z = 0;
             this.group.position.y = newPos.y;
         }
 

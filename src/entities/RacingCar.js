@@ -176,8 +176,10 @@ export class RacingCar {
         } else if (input.backward) {
             if (this.speed > 0) {
                 this.speed -= BRAKE_FORCE * delta;
-            } else {
+            } else if (hasFuel) {
                 this.speed -= ACCELERATION * 0.65 * delta;
+            } else {
+                this.speed = moveToward(this.speed, 0, COAST_DECELERATION * delta);
             }
         } else {
             const coastFactor = Math.abs(this.speed) > 18 ? 1.2 : 1;

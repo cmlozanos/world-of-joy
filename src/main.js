@@ -64,13 +64,22 @@ class Game {
         this.initLighting();
         this.initModules();
         this.bindEvents(); window.WorldLearning.attach(this);
+        document.getElementById('recover-btn').addEventListener('click', () => {
+            if (!this.isRunning || window.WorldLearning.blocked()) return;
+            this.character.resetPosition();
+            this.character.group.position.y = this.world.getHeightAt(0, 0) - 0.26;
+            this.cameraController.reset();
+            this.input.keys = {};
+            if (this.touchControls) this.touchControls.resetAllInputs();
+            this.hud.queueMessage('Sigue la flecha hasta tu objetivo');
+        });
     }
 
     initRenderer() {
         this.isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
         this.renderer = new THREE.WebGLRenderer({
             canvas: this.canvas,
-            antialias: !this.isMobile,
+            antialias: false,
             powerPreference: 'high-performance',
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -187,6 +196,7 @@ class Game {
         }
 
         this.bindHudHandlers();
+        document.getElementById('recover-btn').textContent = 'Volver al inicio';
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('word-hud').style.display = 'none';
         document.getElementById('number-hud').style.display = 'none';
@@ -279,6 +289,7 @@ class Game {
                 break;
 
             case ROUND_STATE.ROUND_COMPLETE:
+                window.FamilyV2.award('explorer-' + this.roundManager.currentRoundIndex, 3);
                 if (this.touchControls) this.touchControls.hide();
                 this.hud.showRoundComplete(
                     this.roundManager.getLastRoundStars(),
@@ -316,6 +327,9 @@ class Game {
 
         this.fruitManager.reset();
         this.fruitManager.spawnFruits(this.world.getTreePositions(), this.world);
+        if (this.roundManager.isFruitMission()) {
+            this.fruitManager.arrangeTrail(round.target, this.world);
+        }
         this.hud.setTotalFruits(this.fruitManager.getTotalFruits());
 
         this.waterBottleManager.reset();
@@ -323,6 +337,18 @@ class Game {
 
         this.gemManager.reset();
         this.gemManager.spawn(this.world);
+        const nearby = round.mission === MISSION_TYPE.HYDRATION_RUN ? this.waterBottleManager :
+            round.mission === MISSION_TYPE.GEM_HUNT ? this.gemManager : null;
+        if (nearby) {
+            const items = nearby.bottles || nearby.gems;
+            for (let i = 0; i < Math.min(round.target, items.length); i++) {
+                const item = items[i];
+                const height = item.baseY - this.world.getHeightAt(item.group.position.x, item.group.position.z);
+                item.baseY = this.world.getHeightAt(0, 6 + i * 5) + height;
+                item.group.position.set(0, item.baseY, 6 + i * 5);
+            }
+            nearby.batch.sync();
+        }
 
         this.shootingStarManager.reset();
         if (round.mission === MISSION_TYPE.STAR_CATCH) {
@@ -611,6 +637,7 @@ class Game {
     }
 }
 
+await window.FamilyV2.fontReady;
 quality.init();
 const game = new Game();
 let wordGame = null;
@@ -698,4 +725,12 @@ document.getElementById('number-mode-button').addEventListener('click', () => {
     }
     showGlobalHomeButton(() => numberGame.goToMenu());
     numberGame.start();
+});
+
+window.addEventListener('keydown', () => window.FamilyV2.touch(), { passive: true });
+
+window.addEventListener('world:home', () => {
+    if (game.isRunning) game.goToStartScreen();
+    for (const item of [wordGame, numberGame, racingGame]) if (item && item.isRunning) item.goToMenu();
+    showStartScreen();
 });

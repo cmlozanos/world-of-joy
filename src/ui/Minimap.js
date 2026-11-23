@@ -91,7 +91,7 @@ export class Minimap {
         ctx.translate(half, half);
         ctx.rotate(-character.group.rotation.y);
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.font = 'bold 10px sans-serif';
+        ctx.font = `400 10px "${window.FamilyV2.fontFamily}"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('N', 0, -(half - 12));

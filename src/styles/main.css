@@ -1431,3 +1431,33 @@ body {
         font-size: 18px;
     }
 }
+
+/* Family 2: four equally accessible child choices, with settings in the header. */
+html.family-v2 [data-family-slot] { position: fixed; top: 6px; left: 8px; z-index: 1000; }
+html.family-v2 #global-home-btn { display: none !important; }
+html.family-v2 #game-container { height: var(--family-height, 100vh); }
+html.family-v2 #start-screen { height: var(--family-height, 100vh); background: var(--family-page); color: var(--family-ink); padding: 72px 12px 12px; justify-content: center; overflow: hidden; }
+html.family-v2 #start-screen h1 { font-size: clamp(24px, 5vw, 42px); margin: 0 0 16px; color: var(--family-ink); text-shadow: none; }
+html.family-v2 #start-screen > p, html.family-v2 .mode-desc, html.family-v2 #instructions { display: none; }
+html.family-v2 #mode-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: min(90vw, 660px); }
+html.family-v2 .mode-btn { width: auto; min-width: 0; min-height: 0; padding: 12px; border: 0; }
+html.family-v2 .mode-icon { font-size: clamp(30px, 7vh, 56px); }
+html.family-v2 .mode-title { font-size: clamp(16px, 3vw, 24px); }
+html.family-v2 .overlay-card { background: var(--family-panel); color: var(--family-ink); }
+@media (max-height: 430px) {
+  html.family-v2 #start-screen h1 { font-size: 24px; margin: 0 0 8px; }
+  html.family-v2 #mode-buttons { gap: 8px; }
+  html.family-v2 .mode-btn { padding: 6px; }
+  html.family-v2 .mode-icon { font-size: 28px; }
+}
+
+#recover-btn { position: absolute; top: 70px; left: 12px; width: auto; padding: 8px 12px; font-size: 14px; z-index: 12; }
+/* A recovery control is one button, not a full-height inherited menu panel. */
+html.family-v2 #recover-btn { top: 70px; bottom: auto; height: auto; max-width: 180px; border: 0; border-radius: 12px; background: var(--family-panel); color: var(--family-ink); }
+html.family-v2 .fruit-separator, html.family-v2 #fruit-remaining { display: none; }
+html.family-v2 #hud-back-btn, html.family-v2 #word-back-btn, html.family-v2 #number-back-btn { visibility: hidden; }
+html.family-v2 .mode-title { text-transform: none; letter-spacing: 0; }
+@media (max-width: 600px) {
+  html.family-v2 #recover-btn { top: 278px; }
+  html.family-v2 #mission-hint-bar { top: 330px; bottom: auto; max-width: calc(100vw - 24px); font-size: 14px; pointer-events: none; }
+}
