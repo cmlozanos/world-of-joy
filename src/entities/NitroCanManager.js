@@ -115,6 +115,7 @@ export class NitroCanManager {
     }
 
     animate(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.time += delta;
         for (const canister of this.canisters) {
             if (canister.collected) continue;

@@ -126,6 +126,7 @@ export class SkyRingManager {
     }
 
     animate(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.time += delta;
         for (const ring of this.rings) {
             if (ring.passed) continue;

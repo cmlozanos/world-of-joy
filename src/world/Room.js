@@ -30,8 +30,12 @@ export class Room {
         const tileSize = 64;
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
-                ctx.fillStyle = (r + c) % 2 === 0 ? '#e8dcc8' : '#d4c4a8';
+                ctx.fillStyle = (r + c) % 2 === 0 ? '#cba67c' : '#dfc49e';
                 ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                ctx.strokeStyle = '#b4926b'; ctx.lineWidth = 1;
+                ctx.strokeRect(c*tileSize, r*tileSize, tileSize, tileSize);
+                ctx.fillStyle = 'rgba(111,75,48,0.14)';
+                for (let grain=0;grain<8;grain++) ctx.fillRect(c*tileSize+4, r*tileSize+grain*8+3, 36+(grain*13)%20, 1);
             }
         }
         const texture = new THREE.CanvasTexture(canvas);
@@ -58,7 +62,19 @@ export class Room {
 
         for (let i = 0; i < wallData.length; i++) {
             const geometry = new THREE.BoxGeometry(ROOM_SIZE, WALL_HEIGHT, WALL_THICKNESS);
-            const material = new THREE.MeshLambertMaterial({ color: wallColors[i] });
+            const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
+            const ctx = canvas.getContext('2d'); ctx.fillStyle = '#fff7e7'; ctx.fillRect(0,0,256,128);
+            ctx.fillStyle = '#bdd5ca'; ctx.fillRect(0,86,256,42);
+            ctx.fillStyle = '#a2bdb3'; ctx.fillRect(0,85,256,3);
+            // Daylit glazed windows with wooden mullions, baked into a single wall.
+            for (let x=24;x<256;x+=80) {
+                ctx.fillStyle='#e8ce9f'; ctx.fillRect(x-3,19,58,56);
+                ctx.fillStyle='#8bb9cb'; ctx.fillRect(x,22,52,50);
+                ctx.fillStyle='#c9e4e6';ctx.beginPath();ctx.moveTo(x,22);ctx.lineTo(x+52,22);ctx.lineTo(x,72);ctx.fill();
+                ctx.fillStyle='#f6ead0'; ctx.fillRect(x+24,22,3,50);ctx.fillRect(x,45,52,3);
+            }
+            const texture = new THREE.CanvasTexture(canvas); texture.wrapS = THREE.RepeatWrapping; texture.repeat.x = 4;
+            const material = new THREE.MeshLambertMaterial({ map: texture, color: wallColors[i] });
             const wall = new THREE.Mesh(geometry, material);
             wall.position.set(...wallData[i].pos);
             wall.rotation.set(...wallData[i].rot);

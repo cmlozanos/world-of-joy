@@ -111,6 +111,7 @@ export class FuelCanManager {
     }
 
     animate(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.time += delta;
         for (const can of this.cans) {
             if (can.collected) continue;

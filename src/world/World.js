@@ -70,6 +70,15 @@ export class World {
 
         this.profile = WORLD_PROFILES[options.profile] || WORLD_PROFILES.full;
         this.createTerrain();
+        const mountains = new THREE.InstancedMesh(new THREE.ConeGeometry(1,1,7), new THREE.MeshLambertMaterial({color:0x758e8c}), 20);
+        for (let i=0;i<20;i++) {
+            const a=i*Math.PI/10;
+            this._dummy.position.set(Math.cos(a)*410,-4,Math.sin(a)*410);
+            this._dummy.rotation.set(0,a,0);
+            this._dummy.scale.set(75+(i%4)*18,70+(i%5)*21,70);
+            this._dummy.updateMatrix(); mountains.setMatrixAt(i,this._dummy.matrix);
+        }
+        this.scene.add(mountains);
         this.createRoad();
         this.createTrees(this.profile.treeCount, this.profile.roadPaddingTrees);
         this.createRocks(this.profile.rockCount, this.profile.roadPaddingRocks);
@@ -124,7 +133,16 @@ export class World {
         }
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-        const material = new THREE.MeshLambertMaterial({ vertexColors: true });
+        // Small repeated canvas material: cut grass, paths and soil grain, baked once.
+        const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d'); ctx.fillStyle = '#d1d5ae'; ctx.fillRect(0,0,128,128);
+        for (let i=0;i<160;i++) {
+            const x=(i*47)%128, y=(i*73)%128;
+            ctx.fillStyle=i%3 ? '#bdc69c' : '#e2dfbd';
+            ctx.fillRect(x,y,1,2+i%4);
+        }
+        const grass = new THREE.CanvasTexture(canvas); grass.wrapS = grass.wrapT = THREE.RepeatWrapping; grass.repeat.set(90,90);
+        const material = new THREE.MeshLambertMaterial({ vertexColors: true, map: grass });
         const terrain = new THREE.Mesh(geometry, material);
         terrain.receiveShadow = true;
         this.scene.add(terrain);
@@ -165,7 +183,7 @@ export class World {
 
         const road = new THREE.Mesh(
             geometry,
-            new THREE.MeshLambertMaterial({ color: 0x40464d })
+            new THREE.MeshLambertMaterial({ color: 0x4e5660 })
         );
         road.receiveShadow = true;
         this.scene.add(road);

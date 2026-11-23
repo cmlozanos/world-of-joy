@@ -22,6 +22,18 @@ const load = async file => import(await moduleURL(path.join(root, file)));
 
 (async () => {
     const THREE = await load('vendor/three.module.js');
+    const {quality} = await load('src/engine/Quality.js');
+    const litScene = new THREE.Scene(); litScene.background = new THREE.Color(0x87ceeb);
+    const rig = {scene:litScene,lights:{ambient:new THREE.AmbientLight(0xffffff,0.8)},
+        renderer:{setPixelRatio(){},shadowMap:{}},qualityRevision:'0:0',qualitySettingRevision:0};
+    const day = litScene.background.clone();
+    global.window = {FamilyV2:{theme:()=> 'dark',motionAllowed:()=>false}};
+    quality.apply(rig); assert.ok(litScene.background.r<day.r,'native night darkens sky');
+    window.FamilyV2.theme=()=> 'light'; quality.apply(rig);
+    assert.ok(litScene.background.equals(day),'native day restores exact scenario sky');
+    assert.equal(rig.lights.ambient.intensity,0.8,'light intensity restored without compounding');
+    delete global.window;
+
     const {FixedStep, uiDue} = await load('src/engine/FixedStep.js');
     const {Character} = await load('src/entities/Character.js');
     const {RacingCar} = await load('src/entities/RacingCar.js');
@@ -80,6 +92,10 @@ const load = async file => import(await moduleURL(path.join(root, file)));
         assert.ok(scene.children.every(child => child.isInstancedMesh), 'no separate pickup meshes in scene');
         const first = manager[listName][0];
         const position = first.group.position.clone();
+        global.window={FamilyV2:{motionAllowed:()=>false}};
+        manager.animate(1/60);
+        assert.deepEqual(first.group.position.toArray(),position.toArray(),'manual motion freezes visible pickup bob');
+        delete global.window;
         manager[listName].forEach(item => { item.group.visible = false; });
         manager.animate(1 / 60);
         assert.deepEqual(first.group.position.toArray(), position.toArray(), 'hidden visuals not animated');
@@ -103,7 +119,6 @@ const load = async file => import(await moduleURL(path.join(root, file)));
         console.log(name + ': ' + expected + ' pickups, <= ' + maxBatches + ' batches; culling, collection and resource release passed');
         manager.reset();
     }
-    const {quality} = await load('src/engine/Quality.js');
     const scene = new THREE.Scene();
     for (let i = 0; i < 17; i++) scene.add(new THREE.PointLight());
     const renderer = {shadowMap: {}, setPixelRatio(value) { this.pixelRatio = value; }};

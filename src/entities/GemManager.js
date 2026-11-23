@@ -152,13 +152,14 @@ export class GemManager {
     }
 
     animate(delta) {
-        this.time += delta;
+        const motion = globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (motion) this.time += delta;
         for (const gem of this.gems) {
             if (gem.collected) {
                 if (!gem.collectionDone) animateCollection(gem, delta, 0.5, GEM_SCALE, 0.8, 0, 0.92);
                 continue;
             }
-            if (!gem.group.visible) continue;
+            if (!gem.group.visible || !motion) continue;
             gem.group.position.y =
                 gem.baseY + Math.sin(this.time * FLOAT_SPEED + gem.phaseOffset) * FLOAT_AMPLITUDE;
             gem.group.rotation.y = this.time * SPIN_SPEED;

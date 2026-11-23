@@ -71,7 +71,7 @@ export class ThirdPersonCamera {
         panel.id = 'camera-debug-panel';
         panel.style.cssText = `
             position: fixed; top: 10px; right: 200px; z-index: 9999;
-            background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace;
+            background: rgba(0,0,0,0.85); color: #0f0; font-family: "${window.FamilyV2.fontFamily}";
             font-size: 13px; padding: 12px 16px; border-radius: 8px;
             border: 1px solid #0f0; pointer-events: auto; min-width: 280px;
         `;

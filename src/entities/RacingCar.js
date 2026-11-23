@@ -51,8 +51,8 @@ export class RacingCar {
 
     buildModel() {
         const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x1b1b1b });
-        const rimMaterial = new THREE.MeshLambertMaterial({ color: 0xdadada });
-        const redMaterial = new THREE.MeshLambertMaterial({ color: 0xd94141 });
+        const rimMaterial = new THREE.MeshStandardMaterial({ color: 0xdadada, roughness:0.3, metalness:0.65 });
+        const redMaterial = new THREE.MeshStandardMaterial({ color: 0xd94141, roughness:0.38, metalness:0.22 });
         const darkRedMaterial = new THREE.MeshLambertMaterial({ color: 0x8c1f2d });
         const glassMaterial = new THREE.MeshLambertMaterial({ color: 0x9fd7ff, transparent: true, opacity: 0.82 });
 
@@ -228,6 +228,7 @@ export class RacingCar {
     }
 
     updateVisuals(delta, input) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         const wheelRotation = (this.speed * delta) / WHEEL_RADIUS;
         for (const wheel of this.wheels) {
             wheel.rotation.x -= wheelRotation;

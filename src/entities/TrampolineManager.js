@@ -172,6 +172,7 @@ export class TrampolineManager {
     }
 
     animate(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.time += delta;
         for (const t of this.trampolines) {
             for (let i = 0; i < t.arrowGroup.children.length; i++) {

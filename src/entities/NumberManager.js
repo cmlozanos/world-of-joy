@@ -172,6 +172,7 @@ export class NumberManager {
     }
 
     animate(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.time += delta;
 
         for (const token of this.numbers) {

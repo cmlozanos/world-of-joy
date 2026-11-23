@@ -1,0 +1,10 @@
+Playable trajectory start-button: {"state":"ROUND_COMPLETE","progress":8,"trajectory":[{"position":[0,2.5962926851022843,0.16666666666666666],"progress":0,"remaining":67.15000000000045},{"position":[-3.161305135434215,1.8469515143080315,7.184194512554113],"progress":3,"remaining":66.1500000000005},{"position":[-0.39915602267571637,1.4479594158491194,16.68484949481784],"progress":5,"remaining":65.15000000000056},{"position":[-0.045665747597679635,1.0736726263618321,26.67589068409353],"progress":7,"remaining":64.15000000000062}]}
+start-button: movement, challenge, audio and internal menu passed
+AssertionError [ERR_ASSERTION]: movement word-mode-button
+    at /Users/carlos.lozanosoto/personal/repositories/world-of-joy/tools/check-browser.cjs:133:11 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [Array],
+  expected: [Array],
+  operator: 'notDeepStrictEqual'
+}

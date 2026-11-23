@@ -140,11 +140,12 @@ export class ShootingStarManager {
     }
 
     animate(delta) {
-        this.time += delta;
+        const motion = globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (motion) this.time += delta;
         for (const star of this.stars) {
             if (star.collected) continue;
 
-            star.starBody.rotation.y = this.time * 2;
+            if (motion) star.starBody.rotation.y = this.time * 2;
             star.glow.material.opacity = 0.2 + Math.sin(this.time * 3) * 0.15;
 
             // Pulse beacon
@@ -166,11 +167,11 @@ export class ShootingStarManager {
                 }
             } else if (star.state === 'grounded') {
                 star.lingerTimer -= delta;
-                star.group.position.y = star.targetY + Math.sin(this.time * 2) * 0.15;
+                star.group.position.y = star.targetY + (motion ? Math.sin(this.time * 2) * 0.15 : 0);
 
                 // Start blinking when about to expire
                 if (star.lingerTimer <= 3) {
-                    const blink = Math.sin(this.time * 10) > 0;
+                    const blink = !motion || Math.sin(this.time * 10) > 0;
                     star.group.visible = blink;
                 }
 

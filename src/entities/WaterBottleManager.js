@@ -145,13 +145,14 @@ export class WaterBottleManager {
     }
 
     animate(delta) {
-        this.time += delta;
+        const motion = globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (motion) this.time += delta;
         for (const bottle of this.bottles) {
             if (bottle.collected) {
                 if (!bottle.collectionDone) animateCollection(bottle, delta, 0.3, BOTTLE_SCALE, 0, 3, 0.9);
                 continue;
             }
-            if (!bottle.group.visible) continue;
+            if (!bottle.group.visible || !motion) continue;
             bottle.group.position.y =
                 bottle.baseY + Math.sin(this.time * FLOAT_SPEED + bottle.phaseOffset) * FLOAT_AMPLITUDE;
             bottle.group.rotation.y = this.time * SPIN_SPEED;

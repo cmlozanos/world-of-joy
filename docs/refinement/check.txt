@@ -1,0 +1,4 @@
+node tools/sync-learning-gate.mjs --check
+.: verified profile, gate, 100 words/images and local offline loading (935825 image bytes)
+node tools/check.cjs
+World of Joy: four gated modes, syntax, local assets, 10-minute gate, preserved wellbeing and isolated caches verified.

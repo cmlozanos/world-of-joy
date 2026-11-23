@@ -65,6 +65,7 @@ export class ParticleSystem {
     }
 
     spawnParticle(position, color, size, lifetime) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         const mesh = this.getAvailableMesh(false);
         if (!mesh) return;
 
@@ -90,6 +91,7 @@ export class ParticleSystem {
     }
 
     spawnDustParticle(position) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         const mesh = this.getAvailableMesh(true);
         if (!mesh) return;
 

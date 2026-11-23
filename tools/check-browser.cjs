@@ -92,6 +92,18 @@ window.__playScenario = mode => {
    await page.locator('#'+button).click();
    await page.waitForFunction(()=>__worldRead().some(g=>g.running),null,{timeout:20000});
    await page.waitForFunction(()=>__worldRead().some(g=>g.running&&g.state==='PLAYING'),null,{timeout:15000});
+   if (process.env.WORLD_SCREENSHOT_DIR) {
+    for (const viewport of [{width:1024,height:768},{width:740,height:360}]) {
+     await page.setViewportSize(viewport);
+     for (const theme of ['light','dark']) {
+      await page.locator('family-v2-shell #theme').selectOption(theme);
+      await page.waitForTimeout(100);
+      await page.screenshot({path:path.join(process.env.WORLD_SCREENSHOT_DIR,button+'-'+viewport.width+'-'+theme+'.png')});
+     }
+    }
+    await page.setViewportSize({width:1024,height:768});
+    await page.locator('family-v2-shell #theme').selectOption('light');
+   }
    await page.evaluate(() => { Math.random = () => .1; });
    assert.equal(await page.locator('#global-quality-btn').getAttribute('aria-pressed'),'true');
    await page.waitForFunction(()=>__worldRenderRead().shadows===false&&__worldRenderRead().pointLights===0);
@@ -128,6 +140,8 @@ window.__playScenario = mode => {
     await page.waitForFunction(()=>__worldRead().some(g=>g.running&&g.state==='PLAYING'),null,{timeout:15000});
    }
 
+   // Return keyboard focus to gameplay after exercising the adult dialog.
+   await page.evaluate(() => document.activeElement?.blur());
    const before=await page.evaluate(()=>__worldRead().find(g=>g.running).position);
    await page.keyboard.down('ArrowUp');await page.waitForTimeout(350);await page.keyboard.up('ArrowUp');
    assert.notDeepEqual(await page.evaluate(()=>__worldRead().find(g=>g.running).position),before,'movement '+button);

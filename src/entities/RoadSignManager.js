@@ -108,7 +108,7 @@ export class RoadSignManager {
     }
 
     update(delta, vehicle, onDiscover) {
-        this.time += delta;
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches)) this.time += delta;
         const vehiclePosition = vehicle ? vehicle.getPosition() : null;
 
         for (const sign of this.signs) {

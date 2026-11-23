@@ -22,7 +22,7 @@ input, textarea, select,
 body {
     overflow: hidden;
     background: #000;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Family School";
 }
 
 :root {
@@ -290,7 +290,7 @@ body {
     border: none;
     border-radius: 16px;
     cursor: pointer;
-    font-family: inherit;
+    font-family: "Family School";
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     min-width: 200px;

@@ -399,7 +399,7 @@ class Game {
             this.fruitManager.animate(advanced);
             this.waterBottleManager.animate(advanced);
             this.gemManager.animate(advanced);
-            this.wildlife.update(advanced, this.world);
+            if (window.FamilyV2?.motionAllowed?.() !== false) this.wildlife.update(advanced, this.world);
         }
         quality.apply(this);
         this.renderer.render(this.scene, this.camera);

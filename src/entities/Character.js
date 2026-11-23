@@ -41,7 +41,7 @@ export class Character {
         const hairColor = 0x5d3a1a;
 
         // Body (torso)
-        const torsoGeometry = new THREE.BoxGeometry(0.6, 0.7, 0.35);
+        const torsoGeometry = new THREE.CylinderGeometry(0.26, 0.31, 0.7, 10);
         const torsoMaterial = new THREE.MeshLambertMaterial({ color: shirtColor });
         this.torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
         this.torso.position.y = 1.15;
@@ -85,7 +85,7 @@ export class Character {
         this.group.add(this.smile);
 
         // Arms
-        const armGeometry = new THREE.BoxGeometry(0.18, 0.55, 0.18);
+        const armGeometry = new THREE.CylinderGeometry(0.09, 0.075, 0.55, 8);
         const armMaterial = new THREE.MeshLambertMaterial({ color: skinColor });
 
         this.leftArmPivot = new THREE.Group();
@@ -105,7 +105,7 @@ export class Character {
         this.group.add(this.rightArmPivot);
 
         // Legs
-        const legGeometry = new THREE.BoxGeometry(0.22, 0.5, 0.22);
+        const legGeometry = new THREE.CylinderGeometry(0.11, 0.095, 0.5, 8);
         const legMaterial = new THREE.MeshLambertMaterial({ color: pantsColor });
 
         this.leftLegPivot = new THREE.Group();
@@ -258,6 +258,7 @@ export class Character {
     }
 
     updateAnimation(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.animationTime += delta;
 
         switch (this.state) {

@@ -169,13 +169,14 @@ export class FruitManager {
     }
 
     animate(delta) {
-        this.time += delta;
+        const motion = globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (motion) this.time += delta;
         for (const fruit of this.fruits) {
             if (fruit.collected) {
                 if (!fruit.collectionDone) animateCollection(fruit, delta, 0.4, FRUIT_SCALE, 0.5, 0, 0);
                 continue;
             }
-            if (!fruit.group.visible) continue;
+            if (!fruit.group.visible || !motion) continue;
             fruit.group.position.y =
                 fruit.baseY +
                 Math.sin(this.time * FRUIT_BOUNCE_SPEED + fruit.phaseOffset) * FRUIT_BOUNCE_AMPLITUDE;

@@ -140,6 +140,7 @@ export class RaceMarkerManager {
     }
 
     update(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.time += delta;
         const markers = [this.startMarker, this.finishMarker];
         for (const marker of markers) {

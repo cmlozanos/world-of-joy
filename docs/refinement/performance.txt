@@ -1,0 +1,7 @@
+Character: identical movement/jump/time/fuel at 10/15/20/30/60 FPS
+RacingCar: identical movement/jump/time/fuel at 10/15/20/30/60 FPS
+Mechanics: empty reverse stops; diagonal tree collision allows escape.
+FruitManager: 600 pickups, <= 25 batches; culling, collection and resource release passed
+WaterBottleManager: 80 pickups, <= 6 batches; culling, collection and resource release passed
+GemManager: 30 pickups, <= 30 batches; culling, collection and resource release passed
+World performance contracts passed without browser/GPU.

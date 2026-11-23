@@ -174,6 +174,7 @@ export class LetterManager {
     }
 
     animate(delta) {
+        if ((globalThis.window?.FamilyV2?.motionAllowed?.() ?? !globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) === false) return;
         this.time += delta;
         for (const letter of this.letters) {
             if (letter.collected) continue;
